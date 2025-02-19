@@ -26,4 +26,4 @@ def chat():
 
 if __name__ == '__main__':
     llm_instance = LlmModule()
-    app.run(debug=True)
+    app.run(port=8000)
