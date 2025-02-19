@@ -32,6 +32,9 @@ class LlmModule:
         )
         
         print(response)
+        
+        if isinstance(response, str):
+            return response
 
         return response["response"]
     
