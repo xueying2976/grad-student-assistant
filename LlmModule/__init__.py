@@ -11,7 +11,7 @@ class LlmModule:
     def create_context(self):
         response = pdf_upload(
             path = './context.pdf',
-            description="This provided PDF file is the Tufts University Graduate Students Handbook.",
+            description="Official Tufts University Graduate Students Handbook for course selection and guidance",
             session_id = self.session_id,
             strategy = 'smart'
         )
@@ -21,14 +21,15 @@ class LlmModule:
     def ask_question(self, question: str) -> str:
         response = generate(
             model="4o-mini",
-            system='Answer my questions strictly and solely based on the already provided context, which is the content of the Tufts University Graduate Students Handbook. You will be getting questions from a Tufts graduate student.',
+            system= "You are an AI assistant helping Tufts graduate students strictly based on the Tufts University Graduate Students Handbook. "
+                "Do not generate answers outside the provided context. If the question is unrelated, respond with 'I can only provide information based on the handbook.'",
             query=question,
-            temperature=0.5,
+            temperature=0.3,
             lastk=2048,
             session_id=self.session_id,
             rag_usage=True,
-            rag_threshold=0.4,
-            rag_k=9
+            rag_threshold=0.5,
+            rag_k=5
         )
         
         print(response)

@@ -20,6 +20,7 @@ def index():
 # API route for chatbot interaction
 @app.route('/chat', methods=['POST'])
 def chat():
+    print(request)
     user_message = request.json.get("message")
     bot_reply = llm_instance.receive_request(user_message)
     return jsonify({"reply": bot_reply})
