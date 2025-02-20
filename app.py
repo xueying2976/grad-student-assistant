@@ -20,9 +20,11 @@ def index():
 # API route for chatbot interaction
 @app.route('/chat', methods=['POST'])
 def chat():
-    print(request)
     print(request.json)
-    user_message = request.json.get("message")
+    user_message: str = request.json.get("text")
+    if user_message.startswith("@Bot-Xueying"):
+        user_message = user_message[len("@Bot-Xueying"):]
+    print(f'Question asked: {user_message}')
     bot_reply = llm_instance.receive_request(user_message)
     return jsonify({"reply": bot_reply})
 
