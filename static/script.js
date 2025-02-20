@@ -18,7 +18,7 @@ function sendMessage() {
       }),
     })
       .then(response => response.json())
-      .then(data => addMessage(data.reply, "bot-message"))
+      .then(data => addMessage(data.text, "bot-message"))
       .catch(error => console.error("Error:", error));
   }
 }

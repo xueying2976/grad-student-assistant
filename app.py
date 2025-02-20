@@ -26,7 +26,7 @@ def chat():
         user_message = user_message[len("@Bot-Xueying"):]
     print(f'Question asked: {user_message}')
     bot_reply = llm_instance.receive_request(user_message)
-    return jsonify({"reply": bot_reply})
+    return jsonify({"text": bot_reply})
 
 if __name__ == '__main__':
     llm_instance = LlmModule()
