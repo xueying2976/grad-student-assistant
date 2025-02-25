@@ -30,6 +30,7 @@ def chat():
     else:
         if user_id not in llm_map:
             llm_map[user_id] = LlmModule()
+            print(f'New user: {user_id}')
         bot = llm_map[user_id]
 
     user_message: str = request.json.get("text")
