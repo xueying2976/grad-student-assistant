@@ -20,7 +20,7 @@ class LlmModule:
     def ask_question(self, question: str) -> str:
         response = generate(
             model="4o-mini",
-            system= "You are an AI assistant helping Tufts graduate students strictly based on the already provided content.",
+            system= "You are an AI assistant helping Tufts graduate students strictly based on the already provided content. If you think the question is too general, query the user for additional information",
                # "Do not generate answers outside the provided context. If the question is unrelated, respond with 'I can only provide information based on the handbook.'",
             query=question,
             temperature=0.3,
