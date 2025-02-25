@@ -12,6 +12,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 llm_instance = None
 
+llm_map = {}
+
 # Route to serve the main HTML page
 @app.route("/")
 def index():
@@ -21,11 +23,20 @@ def index():
 @app.route('/chat', methods=['POST'])
 def chat():
     print(request.json)
+    user_id: str = request.json.get("user_id")
+    bot: LlmModule = None
+    if user_id is None:
+        bot = llm_instance
+    else:
+        if user_id not in llm_map:
+            llm_map[user_id] = LlmModule()
+        bot = llm_map[user_id]
+
     user_message: str = request.json.get("text")
     if user_message.startswith("@Bot-Xueying"):
         user_message = user_message[len("@Bot-Xueying"):]
     print(f'Question asked: {user_message}')
-    bot_reply = llm_instance.receive_request(user_message)
+    bot_reply = bot.receive_request(user_message)
     return jsonify({"text": bot_reply})
 
 if __name__ == '__main__':
