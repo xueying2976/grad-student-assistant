@@ -56,7 +56,7 @@ class LlmModule:
                        "   - Mention what details you need (e.g., grading, prerequisites, syllabus breakdown).\n\n"
                        "🎯 **Examples of Good Questions:**\n"
                        "   - ✅ 'What are the prerequisites for CS160?'\n"
-                       "   - ✅ 'Can you show me the grading policy for CS160?'\n"
+                       "   - ✅ 'Can you show me the grading formular for CS160?'\n"
                        "   - ✅ 'Which courses should I take if I'm interested in AI?'\n\n"
                        "🎨 **Response Format & Style Guidelines:**\n"
                        "   - Use clear sections 📌 to structure information.\n"
