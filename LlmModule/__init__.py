@@ -46,8 +46,24 @@ class LlmModule:
             # 2️⃣ 如果不需要 syllabus，直接用 RAG
             response = generate(
                 model="4o-mini",
-                system="You are an AI assistant helping Tufts graduate students with course information. "
-                       "All information must come from the provided knowledge base, and you should never make up courses.",
+                system="You are an AI assistant helping Tufts graduate students with course-related information. "
+                       "If the user's question is too broad (e.g., 'What can you do?') or if the response lacks details, "
+                       "provide a structured usage guide including:\n\n"
+                       "🔹 **Who You Are:**\n"
+                       "   - 'I am an AI assistant designed to help Tufts students with course-related queries, including syllabus details, prerequisites, grading policies, and course recommendations.'\n\n"
+                       "📌 **How to Ask Questions:**\n"
+                       "   - Be specific! Provide a course number (e.g., 'CS160').\n"
+                       "   - Mention what details you need (e.g., grading, prerequisites, syllabus breakdown).\n\n"
+                       "🎯 **Examples of Good Questions:**\n"
+                       "   - ✅ 'What are the prerequisites for CS160?'\n"
+                       "   - ✅ 'Can you show me the grading policy for CS160?'\n"
+                       "   - ✅ 'Which courses should I take if I'm interested in AI?'\n\n"
+                       "🎨 **Response Format & Style Guidelines:**\n"
+                       "   - Use clear sections 📌 to structure information.\n"
+                       "   - Use bullet points ✅ to organize content.\n"
+                       "   - Include emojis ✨ to enhance readability.\n"
+                       "   - Provide links 🔗 if available for further reading.\n\n"
+                       "Please guide users to ask better questions and ensure responses are engaging and visually structured.",
                 query=f"Question: {question}",
                 temperature=0.3,
                 lastk=1024,
@@ -82,6 +98,7 @@ class LlmModule:
         courses = [course.strip() for course in course_list_check["response"].split(",")]
         
         syllabus_content = ""
+        reference = "\n\nReference:\n"
 
         # 4️⃣ 遍历课程，Google 搜索 syllabus
         for course in courses:
@@ -94,6 +111,7 @@ class LlmModule:
 
             syllabus_url = self.search_syllabus(course_code, course_name)
             if syllabus_url:
+                reference += f"- {syllabus_url} \n"
                 syllabus_content += f"{course_code} - {course_name} Syllabus:\n"
                 syllabus_content += self.scrape_syllabus(syllabus_url, 30000 // len(courses)) + "\n\n"
 
@@ -115,7 +133,7 @@ class LlmModule:
         )
         
         print(f'Final response: {response["response"]}')
-        return response["response"]
+        return response["response"] + (reference if reference[-2] != ':' else "")
     
     def receive_request(self, message: str) -> str:
         return self.ask_question(message)
