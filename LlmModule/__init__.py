@@ -95,7 +95,7 @@ class LlmModule:
             syllabus_url = self.search_syllabus(course_code, course_name)
             if syllabus_url:
                 syllabus_content += f"{course_code} - {course_name} Syllabus:\n"
-                syllabus_content += self.scrape_syllabus(syllabus_url, 20000 // len(courses)) + "\n\n"
+                syllabus_content += self.scrape_syllabus(syllabus_url, 30000 // len(courses)) + "\n\n"
 
         print(f'Syllabus content: {syllabus_content}')
                 
