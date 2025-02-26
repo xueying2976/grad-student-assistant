@@ -5,13 +5,7 @@ from LlmModule import LlmModule
 # Create the Flask app
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
-# Set a directory to save uploaded files
-UPLOAD_FOLDER = 'uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 llm_instance = None
-
 llm_map = {}
 
 # Route to serve the main HTML page
