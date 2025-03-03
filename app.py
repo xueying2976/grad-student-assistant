@@ -14,7 +14,7 @@ app = Flask(__name__)
 def hello_world():
    return jsonify({"text":'Hello from Koyeb - you reached the main page!'})
 
-@app.route('/query', methods=['POST'])
+@app.route('/chat', methods=['POST'])
 def main():
     data = request.get_json() 
     print(f"Data: {data}")
