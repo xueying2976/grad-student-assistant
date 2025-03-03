@@ -4,6 +4,7 @@ from datetime import datetime
 import upload_rag
 import llm_agents
 import agent_tools
+import env_variables
 
 # LLM - User Message:
 # State what tools are available, be candid to any user prompt.
@@ -99,5 +100,6 @@ def page_not_found(e):
     return "Not Found", 404
 
 if __name__ == "__main__":
-    upload_rag.upload_all()
+    if env_variables.needToUpload:
+        upload_rag.upload_all()
     app.run(host='0.0.0.0', port=8000)
