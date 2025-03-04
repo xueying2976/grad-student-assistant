@@ -21,8 +21,7 @@ def main():
     print(f"Data: {data}")
 
     # Extract relevant information
-    # user = data.get("user_name", "Unknown")
-    user = "TestUser-00"
+    user = data.get("user_id", "TestUser-00")
     message = data.get("text", "")
 
     print(data)
@@ -91,6 +90,16 @@ def main():
     if category == 'INVALID':
         response = {
             "text": "I am sorry I can only help you with questions regarding the 🐘 CS Department"
+        }
+        
+    if category == 'CLARIFY':
+        response = {
+            "text": prompt
+        }
+        
+    if category == "PLANNING":
+        response = {
+            "text": prompt
         }
     
     return jsonify(response)
