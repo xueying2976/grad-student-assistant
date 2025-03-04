@@ -1,5 +1,5 @@
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from datetime import datetime
 import upload_rag
 import llm_agents
@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-   return jsonify({"text":'Hello from Koyeb - you reached the main page!'})
+   return render_template('index.html')
 
 @app.route('/chat', methods=['POST'])
 def main():
@@ -31,8 +31,6 @@ def main():
         return jsonify({"status": "ignored"})
 
     print(f"Message from {user} : {message}")
-
-    current_date = datetime.now().strftime("%B %d, %Y")
 
     # Get User message
     # Check if message is allowed or illegal, return false until get allowed request
