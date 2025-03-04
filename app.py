@@ -24,8 +24,6 @@ def main():
     user = data.get("user_id", "TestUser-00")
     message = data.get("text", "")
 
-    print(data)
-
     # Ignore bot messages
     if data.get("bot") or not message:
         return jsonify({"status": "ignored"})
@@ -97,7 +95,7 @@ def main():
         
     if category == "PLANNING":
         response = {
-            "text": prompt
+            "text": llm_agents.planning_agent(prompt, user)
         }
     
     return jsonify(response)

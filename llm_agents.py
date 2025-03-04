@@ -55,8 +55,7 @@ def router_agent(query, sessionID):
         model="4o-mini",
         system=router_system,
         query=query,
-        temperature=0.0,
-        session_id=sessionID,
+        temperature=0.5,
         lastk=10
     )
 
@@ -80,10 +79,22 @@ def course_agent(query, sessionID):
                 Your job is to provide the user with the requested course information.
 
                 Given the user's prompt and provided context, give a good response.
+                
+                You are a course selection advisor helping Tufts graduate students choose courses based on their academic interests, credit requirements, and scheduling constraints. "
+                
+                Provide a structured and visually engaging response that helps students select courses that fit their preferences. 
+                
+                If their question lacks details (e.g., preferred class days, required subjects), ask for clarification. 
+                
+                Use bullet points, tables, and relevant emojis to enhance readability.
+                
+                Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
+                
+                
                 """,
         query = query_with_rag_context,
-        temperature=0.0,
-        lastk=0,
+        temperature=0.3,
+        lastk=20,
         session_id=sessionID
     )
 
@@ -105,10 +116,17 @@ def program_agent(query, sessionID):
                 Your job is to provide the user with the requested program information.
 
                 Given the user's prompt and provided context, give a good response.
+                
+                Provide a structured and visually engaging response. 
+                
+                Use bullet points, tables, and relevant emojis to enhance readability.
+                
+                Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
+                
                 """,
         query = query_with_rag_context,
-        temperature=0.0,
-        lastk=0,
+        temperature=0.3,
+        lastk=20,
         session_id=sessionID
     )
 
@@ -135,11 +153,50 @@ def contact_agent(query, sessionID):
                 Context:
                 {str(search_results)}
                 """,
-        temperature=0.0,
-        lastk=0,
+        temperature=0.3,
+        lastk=20,
         session_id=sessionID,
     )
 
     print(f'Contact Response: {response}')
+
+    return response['response']
+
+
+def planning_agent(query, sessionID):
+    query_with_rag_context = agent_tools.query_rag_context(query)
+
+    print(query_with_rag_context)
+
+    response = generate(
+        model = '4o-mini',
+        system = f"""
+                You are a Tufts University Advisor in the Computer Science Department.
+
+                Your job is to provide the user with the requested program information.
+
+                Given the user's prompt and provided context, give a good response.
+                
+                Provide a structured and visually engaging response. 
+                
+                Use bullet points, tables, and relevant emojis to enhance readability.
+                
+                If the user asks for the class planning, try to provide details down to the content of each session.
+                
+                When providing the class schedule, format the response as a daily plan. For each day, list the course name, time, and content description.
+
+                Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
+                
+                """,
+        query = query_with_rag_context,
+        temperature=0.3,
+        lastk=20,
+        session_id=sessionID
+    )
+
+    print(response)
+    
+    if isinstance(response, str):
+        return response
 
     return response['response']

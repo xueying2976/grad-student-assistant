@@ -5,11 +5,10 @@ import re
 def category_prompt_re_match(category_prompt):
     print(f'Category/Prompt: {category_prompt}')
 
-    pattern = r'^(.*?)\((.*?)\)$'
-    params = re.match(pattern, category_prompt['response'])
+    pattern = r'^([^()]*)\((.*?)\)$'
+    params = re.match(pattern, category_prompt['response'], re.DOTALL)
 
     return params.group(1), params.group(2)
-
 
 # Return a list of capabilities buttons in JSON
 def capabilites_buttons():
@@ -117,7 +116,7 @@ def rag_search(query):
     rag_context = retrieve(
         query = query,
         session_id = ragSessionId,
-        rag_threshold = 0.5,
+        rag_threshold = 0.4,
         rag_k = 10)
     
     print(f"RAG: {rag_context}")
