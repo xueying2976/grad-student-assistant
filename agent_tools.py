@@ -45,7 +45,7 @@ def capabilites_buttons():
             },
             {
                 "type": "button",
-                "text": "👩🏻‍💻 Job\Recommendation",
+                "text": "👩🏻‍💻 Job\nRecommendation",
                 "msg": "I would like help with job recommendations",
                 "msg_in_chat_window": True,
                 "msg_processing_type": "sendMessage"

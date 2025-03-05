@@ -19,7 +19,7 @@ def router_agent(query, sessionID):
     You are a Tufts University Advisor in the Computer Science Department.
     The Computer Science Department covers all undergraduate, graduate and PhD degrees including but limited to {', '.join(cs_programs)}
 
-    Your job is two produce two parameter: Catgory and Prompt
+    Your job is two produce two parameter: Catgory and Prompt. Your response needs to be in the format of "CATEGORY(PROMT)".
 
     ## Prompt ##
     Your job for this parameter is to analyze the user request, which might be vague, and produce a more effective, clear and complete query statement
