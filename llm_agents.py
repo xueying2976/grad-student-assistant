@@ -41,10 +41,10 @@ def router_agent(query, sessionID):
     10. INVALID - the user asks questions outside computer science, cs department contact information and the available tools.
 
     ## Response Instructions ##
-    - Always produce a prompt and category for the response.
-    - Strictly only respond with the category's name and prompt parameters in the format of "CATEGORY(PROMT)"; see the examples below.
-    - Example response: PROGRAM(What are the degree requirements for M.S. in Cybersecurtiy program?)
-    - Exmaple response: WELCOME(Hi! How can I assist you today?)
+    Always produce a prompt and category for the response.
+    Strictly only respond with the category's name and prompt parameters in the format of "CATEGORY(PROMT)"; See the examples below.
+    - Example response 1: PROGRAM(What are the degree requirements for M.S. in Cybersecurtiy program?)
+    - Exmaple response 2: WELCOME(Hi! How can I assist you today?)
     """
 
     response = generate(
