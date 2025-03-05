@@ -11,14 +11,8 @@ def router_agent(query, sessionID):
     """
     Uses LLM to classify the user's question into one of six categories.
     """
-    # classification_prompt = '''You are an AI assistant that categorizes course-related questions for Tufts graduate students. 
-    #     Classify the following question into one of these six categories and return only a single digit:
-    #     1 Program Requirements - Questions about credit requirements, academic rules, or degree requirements
-    #     2 Course Planning - Selecting courses based on credits, interests, or time constraints
-    #     3 Specific Course Info - Inquiring about syllabus, grading policy, prerequisites, or instructor details
-    #     4 Career Relevance - Asking about how courses relate to job opportunities
-    #     5 Bot Capabilities - Asking what this bot can do
-    #     6 None of Above - If the question is too vague, suggest how to clarify it.'''
+    
+
     cs_programs = ["Artificial Intelligence", "Bioengineering", "Computer Engineering", "Computer Science", 
                         "Cybersecurity", "Data Science", "Human-Robot Interaction", "Software Systems Developement"]
     router_system = f"""
@@ -48,7 +42,7 @@ def router_agent(query, sessionID):
 
     ## Response Instructions ##
     - Always produce a prompt and category for the response.
-    - Strictly only respond with the category's name and prompt parameters.
+    - Strictly only respond with the category's name and prompt parameters in the format of "CATEGORY(PROMT)"; see the examples below.
     - Example response: PROGRAM(What are the degree requirements for M.S. in Cybersecurtiy program?)
     - Exmaple response: WELCOME(Hi! How can I assist you today?)
     """
