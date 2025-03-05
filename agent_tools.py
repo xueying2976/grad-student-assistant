@@ -42,6 +42,13 @@ def capabilites_buttons():
                 "msg": "I would like help with cs department contact information",
                 "msg_in_chat_window": True,
                 "msg_processing_type": "sendMessage"
+            },
+            {
+                "type": "button",
+                "text": "👩🏻‍💻 Job\Recommendation",
+                "msg": "I would like help with job recommendations",
+                "msg_in_chat_window": True,
+                "msg_processing_type": "sendMessage"
             }
         ]
     }

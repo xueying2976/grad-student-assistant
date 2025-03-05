@@ -5,6 +5,7 @@ import upload_rag
 import llm_agents
 import agent_tools
 import env_variables
+from random import randint
 
 # LLM - User Message:
 # State what tools are available, be candid to any user prompt.
@@ -21,7 +22,7 @@ def main():
     print(f"Data: {data}")
 
     # Extract relevant information
-    user = data.get("user_id", "TestUser-00")
+    user = data.get("user_id", f'miniproject-{randint(1000000000, 9999999999)}')
     message = data.get("text", "")
 
     # Ignore bot messages
@@ -64,6 +65,13 @@ def main():
                     - Program Requirements
                     - Course Planning
                     - CS Department Contact
+                    - Job Recommendation
+                    💡 Here are some example questions you can ask me:
+                    ✅ "If I take both COMP 150-SEN and CS 15, can you give me the March schedule for both classes?"
+                    ✅ "How many credits do you recommend per semester for a CS graduate student?"
+                    ✅ "Can you provide the grading formula for CS160?"
+                    ✅ "I'm interested in AI—can you recommend three courses?"
+                    ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
                     """,
             "attachments": [ 
                 agent_tools.capabilites_buttons()
@@ -96,6 +104,11 @@ def main():
     if category == "PLANNING":
         response = {
             "text": llm_agents.planning_agent(prompt, user)
+        }
+        
+    if category == 'JOB':
+        response = {
+            "text": llm_agents.job_agent(prompt, user)
         }
     
     return jsonify(response)

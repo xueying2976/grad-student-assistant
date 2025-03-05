@@ -1,4 +1,5 @@
 import requests
+import urllib.parse
 from flask import Flask, request, jsonify
 from llmproxy import generate, pdf_upload
 from datetime import datetime
@@ -42,7 +43,8 @@ def router_agent(query, sessionID):
     6. CLARIFY - you are not clear about user's question or intent, need to ask further question for clarification.
     7. CONTACT - the user needs information to contact cs department, such as: email address, phone number, address, website link, faculty.
     8. MESSAGE DPT - the user explicitly states that wants to send a message to the CS Department.
-    9. INVALID - the user asks questions outside computer science, cs department contact information and the available tools.
+    9. JOB - the user explicitly requests job recommendations related to a certain class; if no specific class name or class description is provided, it should fall into the CLARIFY category.
+    10. INVALID - the user asks questions outside computer science, cs department contact information and the available tools.
 
     ## Response Instructions ##
     - Always produce a prompt and category for the response.
@@ -56,7 +58,8 @@ def router_agent(query, sessionID):
         system=router_system,
         query=query,
         temperature=0.5,
-        lastk=10
+        lastk=10,
+        session_id=sessionID
     )
 
     category, prompt = agent_tools.category_prompt_re_match(response)
@@ -143,7 +146,6 @@ def contact_agent(query, sessionID):
         model = "4o-mini",
         system = f"""
             You are a Tufts University Advisor in the Computer Science Department.
-            
             Your job is to make a concise and clear response to the user prompt given the provided context.
             """,
         query = f"""
@@ -172,21 +174,13 @@ def planning_agent(query, sessionID):
         model = '4o-mini',
         system = f"""
                 You are a Tufts University Advisor in the Computer Science Department.
-
                 Your job is to provide the user with the requested program information.
-
                 Given the user's prompt and provided context, give a good response.
-                
                 Provide a structured and visually engaging response. 
-                
                 Use bullet points, tables, and relevant emojis to enhance readability.
-                
                 If the user asks for the class planning, try to provide details down to the content of each session.
-                
                 When providing the class schedule, format the response as a daily plan. For each day, list the course name, time, and content description.
-
                 Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
-                
                 """,
         query = query_with_rag_context,
         temperature=0.3,
@@ -200,3 +194,53 @@ def planning_agent(query, sessionID):
         return response
 
     return response['response']
+
+
+locationId = 102380872
+x_rapidapi_host = 'linkedin-data-api.p.rapidapi.com'
+x_rapidapi_key = 'cfd585ecdemshc2f7759959ed435p17fa0fjsn4ba89051e09f'
+
+def job_agent(query, sessionID):
+    skill = generate(
+        model="4o-mini",
+        system='''You'll be provided with a class name and a description of the class.
+        Repsond with a single word or phrase that is the key skill or concept that the class teaches.
+        ''',
+        query=query,
+        temperature=0,
+        lastk=1024,
+        session_id=sessionID,
+    )
+    if isinstance(skill, dict):
+        skill = skill['response']
+
+    print(f'Skill identified: {skill}')
+    
+    encoded_skill = urllib.parse.quote(skill)
+    linkedin_url = f"https://linkedin-data-api.p.rapidapi.com/search-jobs-v2?locationId={locationId}&keywords={encoded_skill}&datePosted=anyTime&sort=mostRelevant"
+    jobs = requests.get(linkedin_url, headers={
+        'x-rapidapi-key': x_rapidapi_key,
+        'x-rapidapi-host': x_rapidapi_host,
+    })
+
+    response = generate(
+        model="4o-mini",
+        system='''You'll be provided with a list of jobs that are related to the skill or concept that you provided.
+        Show the list of jobs in the most readable way possible and at the same time be specific about the jobs, 
+        and summarize the jobs in a single sentence.
+        ''',
+        query=f'''Show the list of jobs in the most readable way possible, and summarize the jobs in a single sentence.
+        
+        {jobs.text}
+        ''',
+        temperature=0,
+        lastk=1024,
+        session_id=sessionID,
+    )
+    
+    if isinstance(response, dict):
+        return response['response']
+
+    return response
+
+
