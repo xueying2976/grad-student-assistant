@@ -72,6 +72,8 @@ def main():
                     ✅ "Can you provide the grading formula for CS160?"
                     ✅ "I'm interested in AI—can you recommend three courses?"
                     ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
+                    ✅ "What job can I do if I take CS160 Algorithm"
+
                     """,
             "attachments": [ 
                 agent_tools.capabilites_buttons()

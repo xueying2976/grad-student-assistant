@@ -37,7 +37,7 @@ def router_agent(query, sessionID):
     6. CLARIFY - you are not clear about user's question or intent, need to ask further question for clarification.
     7. CONTACT - the user needs information to contact cs department, such as: email address, phone number, address, website link, faculty.
     8. MESSAGE DPT - the user explicitly states that wants to send a message to the CS Department.
-    9. JOB - the user explicitly requests job recommendations related to a certain class; if no specific class name or class description is provided, it should fall into the CLARIFY category.
+    9. JOB - the user explicitly requests job recommendations related to a certain class; If the user mentioned [job] wrods, make sure it is categorized into Job. if no specific class name or class description is provided, it should fall into the CLARIFY category.
     10. INVALID - the user asks questions outside computer science, cs department contact information and the available tools.
 
     ## Response Instructions ##
