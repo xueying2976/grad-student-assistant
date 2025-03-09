@@ -62,9 +62,7 @@ def welcome_buttons():
             {
                 "type": "button",
                 "text": "📚 Course\nInfo",
-                "msg": f"""                
-                Can you provide details about [course code]: [course name ]] (plz insure you enter both course code and name  ), including syllabus, prerequisites, grading, class format, and the professor teaching this semester?
-                """,
+                "msg": f"Can you provide details about [course code]: [course name ]] (plz insure you enter both course code and name  ), including syllabus, prerequisites, grading, class format, and the professor teaching this semester?",
                 "msg_in_chat_window": True,
                 "msg_processing_type": "respondWithMessage",
             },
