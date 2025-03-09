@@ -88,6 +88,8 @@ def course_agent(query, sessionID):
                 
                 Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
                 
+                after you finish answering the question, give related suggested follow-up question.
+                
                 
                 """,
         query = query_with_rag_context,
@@ -120,6 +122,8 @@ def program_agent(query, sessionID):
                 Use bullet points, tables, and relevant emojis to enhance readability.
                 
                 Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
+                
+                After you finish answering the question, give related suggested follow-up question.
                 
                 
                 
@@ -180,7 +184,7 @@ def planning_agent(query, sessionID):
                 If the user asks for the class planning, try to provide details down to the content of each session.
                 When providing the class schedule, format the response as a daily plan. For each day, list the course name, time, and content description.
                 Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
-                before you 
+                after you finish answering the question, give related suggested follow-up question.
                 """,
         query = query_with_rag_context,
         temperature=0.3,
