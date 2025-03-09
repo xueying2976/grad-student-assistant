@@ -72,7 +72,7 @@ def welcome_buttons():
                 Can you provide detailed information?
                 """,
                 "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage",
+                "msg_processing_type": "respondWithMessage",
             },
             {
                 "type": "button",
