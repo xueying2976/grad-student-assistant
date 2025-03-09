@@ -109,16 +109,16 @@ def course_agent(query, sessionID):
     visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
 
     response = {
-        "response": response_text,  # Bot's full response including visible follow-up
+        "text": response_text,  # Bot's full response including visible follow-up
         "attachments": []
     }
 
     # If a valid follow-up question exists, add a button
     if visible_follow_up and bot_follow_up:
         # remove bot-format line
-        response['response'] = "\n".join(response['response'].splitlines()[:-1])
+        response['text'] = "\n".join(response['text'].splitlines()[:-1])
         # remove "(visible)"
-        response['response'] = response['response'].replace("(visible)", "")
+        response['text'] = response['text'].replace("(visible)", "")
         
         response["attachments"].append({
             "title": "Follow-Up Question",
