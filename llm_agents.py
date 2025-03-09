@@ -53,7 +53,7 @@ def router_agent(query, sessionID):
         system=router_system,
         query=query,
         temperature=0.5,
-        lastk=10,
+        lastk=100,
         session_id=sessionID
     )
 
@@ -101,17 +101,25 @@ def course_agent(query, sessionID):
         lastk=20,
         session_id=sessionID
     )
+    
+    if isinstance(response_text, dict):
+        response_text = response_text["response"]
 
     # Extract the generated follow-up question
     visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
 
     response = {
-        "text": response_text,  # Bot's full response including visible follow-up
+        "response": response_text,  # Bot's full response including visible follow-up
         "attachments": []
     }
 
     # If a valid follow-up question exists, add a button
     if visible_follow_up and bot_follow_up:
+        # remove bot-format line
+        response['response'] = "\n".join(response['response'].splitlines()[:-1])
+        # remove "(visible)"
+        response['response'] = response['response'].replace("(visible)", "")
+        
         response["attachments"].append({
             "title": "Follow-Up Question",
             "text": f"🔍 {visible_follow_up}",
@@ -129,8 +137,6 @@ def course_agent(query, sessionID):
     print(response)
 
     return response['response']
-
-
 
 
 def extract_follow_up_question(response_text):
