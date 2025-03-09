@@ -22,7 +22,7 @@ def main():
     print(f"Data: {data}")
 
     # Extract relevant information
-    user = data.get("user_id", f'miniproject-{randint(1000000000, 9999999999)}') + '-' + env_variables.version
+    user = data.get("user_id", 'TestUserName') + '-' + env_variables.version
     message = data.get("text", "")
 
     # Ignore bot messages

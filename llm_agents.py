@@ -143,7 +143,7 @@ def extract_follow_up_question(response_text):
     """
     Extracts both the visible and bot-format follow-up question from the response.
     """
-    match = re.search(r'Follow-Up \(visible\): (.+?)\nFollow-Up \(bot format\): (.+)', response_text, re.DOTALL)
+    match = re.search(r'Follow-Up \(visible\): (.+?)\n.*?Follow-Up \(bot format\): (.+)', response_text, re.DOTALL)
 
     if match:
         visible_question = match.group(1).strip()
