@@ -47,6 +47,32 @@ def main():
                     """
         }
 
+
+    if category == 'WELCOME':
+            response = {
+                "text": f"""
+                        Hello, I can help you with:
+                        - Course Information
+                        - Program Requirements
+                        - Course Planning
+                        - CS Department Contact
+                        - Job Recommendation
+                        💡 Here are some example questions you can ask me:
+                        ✅ "If I take both COMP 150-SEN and CS 15, can you give me the March schedule for both classes?"
+                        ✅ "How many credits do you recommend per semester for a CS graduate student?"
+                        ✅ "Can you provide the grading formula for CS160?"
+                        ✅ "I'm interested in AI—can you recommend three courses?"
+                        ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
+                        ✅ "What job can I do if I take CS160 Algorithm"
+                        """,
+                "attachments": [ 
+                    agent_tools.welcome_buttons()
+                ]
+            }
+
+
+
+
     if category == 'COURSE':
         response = {
             "text": llm_agents.course_agent(prompt, user)

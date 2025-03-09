@@ -55,6 +55,79 @@ def capabilites_buttons():
     
     return capabilities
 
+def welcome_buttons():
+    welcome_example =  {
+        "title": "How to ask a good question?",
+        "actions": [
+            {
+                "type": "button",
+                "text": "📚 Course\nInfo",
+                "msg": f"""                
+	            I would like to get more details about the course [course name & code], including:
+                - The course syllabus and main topics covered
+                - Prerequisites and any recommended background knowledge
+                - Grading policies and assessment methods
+                - Class format (e.g., lectures, labs, group projects)
+                - The professor teaching the course this semester
+                Can you provide detailed information?
+                """,
+                "msg_in_chat_window": True,
+                "msg_processing_type": "sendMessage",
+            },
+            {
+                "type": "button",
+                "text": "🎓 Program\nInfo",
+                "msg": f"""                
+                Here is an example query you can use. Feel free to copy and modify it to match your needs:
+                I would like to understand the [degree/program name] requirements for the [undergraduate/graduate/PhD] program, including:
+		        - Total credit requirements
+	            - Core course requirements
+	            - Minimum credits needed for electives
+	            - Additional graduation requirements (e.g., thesis, capstone project)
+                Can you provide detailed information?
+                """,
+                "msg_in_chat_window": True,
+                "msg_processing_type": "sendMessage"
+            },
+            {
+                "type": "button",
+                "text": "🗓️ Course\nPlanning",
+                "msg": f"""                
+	            ✅ “I am planning my courses for [semester/year] and have specific scheduling preferences. Could you suggest real courses that match these criteria?”
+                - Total credits I want to take: [number of credits]
+                - Days I am available for classes: [e.g., Tuesdays and Thursdays]
+                - Preferred courses (if any): [course name & code]
+                - Prerequisites I need to fulfill (if any): [course name & code]
+
+                ✅ “If I take both [course 1] and [course 2], can you provide me with a detailed schedule for these classes in [month/semester]
+                """,
+                "msg_in_chat_window": True,
+                "msg_processing_type": "sendMessage"
+            },
+            {
+                "type": "button",
+                "text": "📞 Contact\nDepartment",
+                "msg": "I would like help with cs department contact information",
+                "msg_in_chat_window": True,
+                "msg_processing_type": "sendMessage"
+            },
+            {
+                "type": "button",
+                "text": "👩🏻‍💻 Job\nRecommendation",
+                "msg": f"""                
+	            I am interested in job opportunities related to the course [course name & course code].
+                Can you provide some related job?
+                """,
+                "msg_in_chat_window": True,
+                "msg_processing_type": "sendMessage"
+            }
+        ]
+    }
+    
+    return welcome_example
+
+
+
 # Return a list of contact buttons in JSON
 def contact_buttons(query):
     contact_info = {
