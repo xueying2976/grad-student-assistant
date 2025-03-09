@@ -62,46 +62,30 @@ def welcome_buttons():
             {
                 "type": "button",
                 "text": "📚 Course\nInfo",
-                "msg": f"Can you provide details about [course code]: [course name ]] (plz insure you enter both course code and name  ), including syllabus, prerequisites, grading, class format, and the professor teaching this semester?",
+                "msg": f"Can you provide details about [course code]: [course name] (please make sure to include both the course code and name), covering the syllabus, prerequisites, grading, class format, and the professor teaching this semester?",
                 "msg_in_chat_window": True,
                 "msg_processing_type": "respondWithMessage",
             },
             {
                 "type": "button",
                 "text": "🎓 Program\nInfo",
-                "msg": f"""                
-                Here is an example query you can use. Feel free to copy and modify it to match your needs:
-                I would like to understand the [degree/program name] requirements for the [undergraduate/graduate/PhD] program, including:
-		        - Total credit requirements
-	            - Core course requirements
-	            - Minimum credits needed for electives
-	            - Additional graduation requirements (e.g., thesis, capstone project)
-                Can you provide detailed information?
-                """,
+                "msg": f"Can you provide details on the requirements for the [undergraduate/graduate/PhD] [degree/program name], including total credits, core courses, electives, and any additional graduation requirements (e.g., thesis, capstone project)",
                 "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage"
+                "msg_processing_type": "respondWithMessage"
             },
             {
                 "type": "button",
                 "text": "🗓️ Course\nPlanning",
-                "msg": f"""                
-	            ✅ “I am planning my courses for [semester/year] and have specific scheduling preferences. Could you suggest real courses that match these criteria?”
-                - Total credits I want to take: [number of credits]
-                - Days I am available for classes: [e.g., Tuesdays and Thursdays]
-                - Preferred courses (if any): [course name & code]
-                - Prerequisites I need to fulfill (if any): [course name & code]
-
-                ✅ “If I take both [course 1] and [course 2], can you provide me with a detailed schedule for these classes in [month/semester]
-                """,
+                "msg": f"I am planning my courses for [semester/year] and have specific scheduling preferences. Can you suggest real courses that fit these criteria: [number of credits], available on [days], and including/preferably [preferred courses, if any] while fulfilling prerequisites [prerequisite course, if any]",
                 "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage"
+                "msg_processing_type": "respondWithMessage"
             },
             {
                 "type": "button",
                 "text": "📞 Contact\nDepartment",
                 "msg": "I would like help with cs department contact information",
                 "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage"
+                "msg_processing_type": "respondWithMessage"
             },
             {
                 "type": "button",
@@ -111,7 +95,7 @@ def welcome_buttons():
                 Can you provide some related job?
                 """,
                 "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage"
+                "msg_processing_type": "respondWithMessage"
             }
         ]
     }
