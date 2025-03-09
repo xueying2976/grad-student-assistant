@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 from llmproxy import generate, pdf_upload
 from datetime import datetime
 import agent_tools
+import re
 
 # ROUTER AGENT
 # Classify user message request and route to correct response
@@ -69,7 +70,7 @@ def course_agent(query, sessionID):
 
     print(query_with_rag_context)
 
-    response = generate(
+    response_text = generate(
         model = '4o-mini',
         system = f"""                                  
         You are a Tufts University Advisor in the Computer Science Department.
@@ -80,17 +81,20 @@ def course_agent(query, sessionID):
         - **Directly answer** the user's question with relevant details.
         - **Use bullet points, tables, and appropriate emojis** for readability.
         - **Ask for clarification** if the query lacks details (e.g., preferred class days, required subjects).
-        - **ALWAYS provide at least one related follow-up question** at the end of your response to encourage further discussion.
+        - **ALWAYS provide at least one follow-up question** at the end of your response.
 
-        📌 **Follow-Up Suggestions Rule:**
-        After answering, **you MUST generate at least one related follow-up question** based on the user's topic.
-        - If the user asks about **grading**, suggest learning about **course prerequisites, retake policies, or exam weight distribution**.
-        - If they inquire about **a professor**, suggest exploring **other courses taught by the same professor**.
-        - If they ask about **a course schedule**, offer information on **course registration deadlines**.
+        📌 **Follow-Up Formatting Rule:**  
+        - The follow-up question **must** be formatted as follows:
+        Follow-Up (visible): Would you like to know [specific topic]?
+        Follow-Up (bot format): I want to know [specific topic].
+        
+        - The **visible follow-up** should be conversational for readability.  
+        - The **bot format** should be directly actionable and understandable for automated queries.  
 
         ⚠️ **Important:**  
-        - Your response is incomplete if you do not include a follow-up question.
-        - The follow-up should feel **natural and helpful**, like a human advisor guiding the student.
+        - **DO NOT** use "Would you like to" in the bot-processing format.  
+        - Ensure both formats appear in the response for easy extraction.  
+
         """,
         query = query_with_rag_context,
         temperature=0.3,
@@ -98,9 +102,49 @@ def course_agent(query, sessionID):
         session_id=sessionID
     )
 
+    # Extract the generated follow-up question
+    visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
+
+    response = {
+        "text": response_text,  # Bot's full response including visible follow-up
+        "attachments": []
+    }
+
+    # If a valid follow-up question exists, add a button
+    if visible_follow_up and bot_follow_up:
+        response["attachments"].append({
+            "title": "Follow-Up Question",
+            "text": f"🔍 {visible_follow_up}",
+            "actions": [
+                {
+                    "type": "button",
+                    "text": "✅ Ask This Question",
+                    "msg": bot_follow_up,  # Sends the "I want to know..." version
+                    "msg_in_chat_window": True,
+                    "msg_processing_type": "sendMessage"
+                }
+            ]
+        })
+    
     print(response)
 
     return response['response']
+
+
+
+
+def extract_follow_up_question(response_text):
+    """
+    Extracts both the visible and bot-format follow-up question from the response.
+    """
+    match = re.search(r'Follow-Up \(visible\): (.+?)\nFollow-Up \(bot format\): (.+)', response_text, re.DOTALL)
+
+    if match:
+        visible_question = match.group(1).strip()
+        bot_question = match.group(2).strip()
+        return visible_question, bot_question
+    else:
+        return None, None  # No follow-up found
 
 # PROGRAM INFORMATION AGENT
 def program_agent(query, sessionID):

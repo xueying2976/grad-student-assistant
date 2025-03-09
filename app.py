@@ -52,7 +52,7 @@ def main():
             response = {
                 "text": f"""
                         Hello, I can help you with:
-                        - Course Information 3.0:
+                        - Course Information 6.0:
                         - Program Requirements
                         - Course Planning
                         - CS Department Contact
