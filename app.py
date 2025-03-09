@@ -18,18 +18,16 @@ def hello_world():
 
 @app.route('/chat', methods=['POST'])
 def main():
-    data = request.get_json() 
+    data = request.get_json()
     print(f"Data: {data}")
 
     # Extract relevant information
-    user = data.get("user_id", f'miniproject-{randint(1000000000, 9999999999)}')
+    user = data.get("user_id", f'miniproject-{randint(1000000000, 9999999999)}') + '-' + env_variables.version
     message = data.get("text", "")
 
     # Ignore bot messages
     if data.get("bot") or not message:
         return jsonify({"status": "ignored"})
-
-    print(f"Message from {user} : {message}")
 
     # Get User message
     # Check if message is allowed or illegal, return false until get allowed request
@@ -51,8 +49,8 @@ def main():
     if category == 'WELCOME':
             response = {
                 "text": f"""
-                        Hello, I can help you with:
-                        - Course Information 6.0:
+                        Hello, I can help you with: (version: {env_variables.version})
+                        - Course Information
                         - Program Requirements
                         - Course Planning
                         - CS Department Contact

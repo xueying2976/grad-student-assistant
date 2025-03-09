@@ -53,7 +53,7 @@ def router_agent(query, sessionID):
         system=router_system,
         query=query,
         temperature=0.5,
-        lastk=100,
+        lastk=20,
         session_id=sessionID
     )
 

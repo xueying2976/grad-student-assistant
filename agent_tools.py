@@ -175,8 +175,6 @@ def rag_search(query):
         rag_threshold = 0.4,
         rag_k = 10)
     
-    print(f"RAG: {rag_context}")
-    
     return rag_context
 
 # Create a context string from retrieve's return val
