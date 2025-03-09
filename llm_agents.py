@@ -88,7 +88,7 @@ def course_agent(query, sessionID):
                 
                 Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
                 
-                after you finish answering the question, give related suggested follow-up question.
+                After you finish answering the question, give related suggested follow-up question to the user"
                 
                 
                 """,

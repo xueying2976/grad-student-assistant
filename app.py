@@ -93,11 +93,11 @@ def main():
             "text": f"""
                     I can help you with:
                     - Course Information
-                      _I would like to understand the [degree/program name] requirements for the [undergraduate/graduate/PhD] program, including:
+                      I would like to understand the [degree/program name] requirements for the [undergraduate/graduate/PhD] program, including:
 		                • Total credit requirements
 	                    • Core course requirements
 	                    • Minimum credits needed for electives
-                       Can you provide detailed information?_
+                       Can you provide detailed information?
                     - Program Requirements
                     - Course Planning
                     - CS Department Contact
