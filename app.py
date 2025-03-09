@@ -72,9 +72,7 @@ def main():
 
 
     if category == 'COURSE':
-        response = {
-            "text": llm_agents.course_agent(prompt, user)
-        }
+        response = llm_agents.course_agent(prompt, user)
 
     if category == 'PROGRAM':
         response = {

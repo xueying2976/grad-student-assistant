@@ -136,7 +136,7 @@ def course_agent(query, sessionID):
     
     print(response)
 
-    return response['response']
+    return response
 
 
 def extract_follow_up_question(response_text):
