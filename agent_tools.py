@@ -63,13 +63,7 @@ def welcome_buttons():
                 "type": "button",
                 "text": "📚 Course\nInfo",
                 "msg": f"""                
-	            I would like to get more details about the course [course name & code], including:
-                - The course syllabus and main topics covered
-                - Prerequisites and any recommended background knowledge
-                - Grading policies and assessment methods
-                - Class format (e.g., lectures, labs, group projects)
-                - The professor teaching the course this semester
-                Can you provide detailed information?
+                Can you provide details about [course code]: [course name ]] (plz insure you enter both course code and name  ), including syllabus, prerequisites, grading, class format, and the professor teaching this semester?
                 """,
                 "msg_in_chat_window": True,
                 "msg_processing_type": "respondWithMessage",
