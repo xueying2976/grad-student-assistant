@@ -93,8 +93,6 @@ def course_agent(query, sessionID):
                 
                 If their question lacks details (e.g., preferred class days, required subjects), ask for clarification. 
                 Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
-                
-                
                 """,
         query = query_with_rag_context,
         temperature=0.3,
