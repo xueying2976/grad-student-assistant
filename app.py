@@ -39,14 +39,6 @@ def main():
     response = {"text": "Not Available. Try again."}
 
     if category == 'WELCOME':
-        response = {
-            "text": f"""
-                    {prompt} 🐘
-                    """
-        }
-
-
-    if category == 'WELCOME':
             response = {
                 "text": f"""
                         Hello, I can help you with: (version: {env_variables.version})
@@ -75,9 +67,7 @@ def main():
         response = llm_agents.course_agent(prompt, user)
 
     if category == 'PROGRAM':
-        response = {
-            "text": llm_agents.program_agent(prompt, user)
-        }
+        response = llm_agents.program_agent(prompt, user)
 
     if category == 'CAPABILITIES':
         response = {
@@ -126,9 +116,7 @@ def main():
         }
         
     if category == "PLANNING":
-        response = {
-            "text": llm_agents.planning_agent(prompt, user)
-        }
+        response = llm_agents.planning_agent(prompt, user)
         
     if category == 'JOB':
         response = {
