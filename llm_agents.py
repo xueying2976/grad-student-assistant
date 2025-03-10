@@ -227,11 +227,10 @@ def program_agent(query, sessionID):
                 }
             ]
         })
-
     
     print(response)
 
-    return response['response']
+    return response
 
 # CONTACT INFORMATION AGENT
 def contact_agent(query, sessionID):
@@ -342,9 +341,10 @@ def planning_agent(query, sessionID):
                 }
             ]
         })
+    
     print(response)
 
-    return response['response']
+    return response
 
 
 locationId = 102380872
