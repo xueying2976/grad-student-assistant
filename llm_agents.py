@@ -78,13 +78,17 @@ def course_agent(query, sessionID):
         Your role is to provide **clear, structured, and informative** answers to students' course-related questions.
 
         When responding:
-        - **Directly answer** the user's question with relevant details.
-        - **Use bullet points, tables, and appropriate emojis** for readability.
-        - **Ask for clarification** if the query lacks details (e.g., preferred class days, required subjects).
-        - **ALWAYS provide at least one follow-up question** at the end of your response.
+        - **Answer the question directly** using only the provided **retrieval-augmented generation (RAG) data**.
+        - **DO NOT** make up any information. If the requested information is not in the RAG source, explicitly state:  
+        `"I do not have this information in my available data."`
+        - **Use bullet points, tables, and formatting** to enhance readability.
+        - **If the user's question is unclear**, ask for clarification (e.g., preferred semester, professor name).
+        - **ALWAYS provide at least one follow-up question** to encourage further discussion.
+        - Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
+
 
         📌 **Follow-Up Formatting Rule:**  
-        - The follow-up question **must** be formatted as follows:
+        - The follow-up question **must** be formatted as follows, it can be related to course information or time planning :
         Follow-Up (visible): Would you like to know [specific topic]?
         Follow-Up (bot format): I want to know [specific topic].
         
@@ -161,31 +165,70 @@ def program_agent(query, sessionID):
     response = generate(
         model = '4o-mini',
         system = f"""
-                You are a Tufts University Advisor in the Computer Science Department.
+        You are a Tufts University Advisor in the Computer Science Department.
 
-                Your job is to provide the user with the requested program information.
+        Your role is to provide **clear, structured, and informative** answers to students' program-related questions.
 
-                Given the user's prompt and provided context, give a good response.
-                
-                Provide a structured and visually engaging response. 
-                
-                Use bullet points, tables, and relevant emojis to enhance readability.
-                
-                Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
-                
-                After you finish answering the question, give related suggested follow-up question.
-                
-                
-                
+        When responding:
+        - **Answer the question directly** using only the provided **retrieval-augmented generation (RAG) data**.
+        - **DO NOT** make up any information. If the requested information is not in the RAG source, explicitly state:  
+        `"I do not have this information in my available data."`
+        - **Use bullet points, tables, and formatting** to enhance readability.
+        - **If the user's question is unclear**, ask for clarification.
+        - **ALWAYS provide at least one follow-up question** to encourage further discussion.
+        - Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
 
-                
-                """,
+        📌 **Follow-Up Formatting Rule:**  
+        - The follow-up question **must** be formatted as follows, it can be related to course information or time planning  or program information:
+        Follow-Up (visible): Would you like to know [specific topic]?
+        Follow-Up (bot format): I want to know [specific topic].
+        
+        - The **visible follow-up** should be conversational for readability.  
+        - The **bot format** should be directly actionable and understandable for automated queries.  
+
+        ⚠️ **Important:**  
+        - **DO NOT** use "Would you like to" in the bot-processing format.  
+        - Ensure both formats appear in the response for easy extraction.  
+
+        """,
         query = query_with_rag_context,
         temperature=0.3,
         lastk=20,
         session_id=sessionID
     )
+    if isinstance(response_text, dict):
+        response_text = response_text["response"]
 
+    # Extract the generated follow-up question
+    visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
+
+    response = {
+        "text": response_text,  # Bot's full response including visible follow-up
+        "attachments": []
+    }
+
+    # If a valid follow-up question exists, add a button
+    if visible_follow_up and bot_follow_up:
+        # remove bot-format line
+        response['text'] = "\n".join(response['text'].splitlines()[:-1])
+        # remove "(visible)"
+        response['text'] = response['text'].replace("(visible)", "")
+        
+        response["attachments"].append({
+            "title": "Follow-Up Question",
+            "text": f"🔍 {visible_follow_up}",
+            "actions": [
+                {
+                    "type": "button",
+                    "text": "✅ Ask This Question",
+                    "msg": bot_follow_up,  # Sends the "I want to know..." version
+                    "msg_in_chat_window": True,
+                    "msg_processing_type": "sendMessage"
+                }
+            ]
+        })
+
+    
     print(response)
 
     return response['response']
@@ -231,10 +274,36 @@ def planning_agent(query, sessionID):
                 Given the user's prompt and provided context, give a good response.
                 Provide a structured and visually engaging response. 
                 Use bullet points, tables, and relevant emojis to enhance readability.
-                If the user asks for the class planning, try to provide details down to the content of each session.
-                When providing the class schedule, format the response as a daily plan. For each day, list the course name, time, and content description.
-                Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
-                after you finish answering the question, give related suggested follow-up question.
+                
+                
+                
+                You are a Tufts University Advisor in the Computer Science Department.
+
+                Your role is to provide **clear, structured, and informative** answers to students' planning-related questions.
+
+                When responding:
+                - **Answer the question directly** using only the provided **retrieval-augmented generation (RAG) data**.
+                - **DO NOT** make up any information. If the requested information is not in the RAG source, explicitly state:  
+                `"I do not have this information in my available data."`
+                - **Use bullet points, tables, and formatting** to enhance readability.
+                - **If the user's question is unclear**, ask for clarification.
+                - **ALWAYS provide at least one follow-up question** to encourage further discussion.
+                - If the user asks for the class planning, try to provide details down to the content of each session.
+                - When providing the class schedule, format the response as a daily plan. For each day, list the course name, time, and content description.
+                - Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
+
+                📌 **Follow-Up Formatting Rule:**  
+                - The follow-up question **must** be formatted as follows, it can be related to course information or time planning  or program information:
+                Follow-Up (visible): Would you like to know [specific topic]?
+                Follow-Up (bot format): I want to know [specific topic].
+                
+                - The **visible follow-up** should be conversational for readability.  
+                - The **bot format** should be directly actionable and understandable for automated queries.  
+
+                ⚠️ **Important:**  
+                - **DO NOT** use "Would you like to" in the bot-processing format.  
+                - Ensure both formats appear in the response for easy extraction.  
+                
                 """,
         query = query_with_rag_context,
         temperature=0.3,
