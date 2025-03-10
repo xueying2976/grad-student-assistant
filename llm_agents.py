@@ -162,7 +162,7 @@ def program_agent(query, sessionID):
 
     print(query_with_rag_context)
 
-    response = generate(
+    response_text = generate(
         model = '4o-mini',
         system = f"""
         You are a Tufts University Advisor in the Computer Science Department.
@@ -266,7 +266,7 @@ def planning_agent(query, sessionID):
 
     print(query_with_rag_context)
 
-    response = generate(
+    response_text = generate(
         model = '4o-mini',
         system = f"""
                 You are a Tufts University Advisor in the Computer Science Department.
@@ -311,10 +311,38 @@ def planning_agent(query, sessionID):
         session_id=sessionID
     )
 
+    if isinstance(response_text, dict):
+        response_text = response_text["response"]
+
+    # Extract the generated follow-up question
+    visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
+
+    response = {
+        "text": response_text,  # Bot's full response including visible follow-up
+        "attachments": []
+    }
+
+    # If a valid follow-up question exists, add a button
+    if visible_follow_up and bot_follow_up:
+        # remove bot-format line
+        response['text'] = "\n".join(response['text'].splitlines()[:-1])
+        # remove "(visible)"
+        response['text'] = response['text'].replace("(visible)", "")
+        
+        response["attachments"].append({
+            "title": "Follow-Up Question",
+            "text": f"🔍 {visible_follow_up}",
+            "actions": [
+                {
+                    "type": "button",
+                    "text": "✅ Ask This Question",
+                    "msg": bot_follow_up,  # Sends the "I want to know..." version
+                    "msg_in_chat_window": True,
+                    "msg_processing_type": "sendMessage"
+                }
+            ]
+        })
     print(response)
-    
-    if isinstance(response, str):
-        return response
 
     return response['response']
 
