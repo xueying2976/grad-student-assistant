@@ -172,7 +172,7 @@ def rag_search(query):
         query = query,
         session_id = ragSessionId,
         rag_threshold = 0.4,
-        rag_k = 10)
+        rag_k=9)
     
     return rag_context
 

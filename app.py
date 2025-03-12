@@ -41,7 +41,7 @@ def main():
     if category == 'WELCOME':
             response = {
                 "text": f"""
-                    I can help you with : (version: {env_variables.version})
+                    I can help you with : (version: {env_variables.version} )
                     - **Course Information(25 spring semester courses)**
                     ✅ "Can you provide the grading formula for CS160?"
                     
