@@ -2,13 +2,12 @@
 import requests
 import re
 
-def category_prompt_re_match(category_prompt):
+def category_prompt_re_match(category_prompt: str):
     print(f'Category/Prompt: {category_prompt}')
 
-    pattern = r'^([^()]*)\((.*?)\)$'
-    params = re.match(pattern, category_prompt['response'], re.DOTALL)
+    parts = category_prompt.split("(")
 
-    return params.group(1), params.group(2)
+    return parts[0], parts[1][:-1]
 
 # Return a list of capabilities buttons in JSON
 def capabilites_buttons():

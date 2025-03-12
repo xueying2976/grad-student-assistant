@@ -57,6 +57,9 @@ def router_agent(query, sessionID):
         lastk=20,
         session_id=sessionID
     )
+    
+    if isinstance(response, dict):
+        response = response['response']
 
     category, prompt = agent_tools.category_prompt_re_match(response)
 
