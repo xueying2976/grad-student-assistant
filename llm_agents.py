@@ -91,7 +91,7 @@ def course_agent(query, sessionID):
 
 
         📌 **Follow-Up Formatting Rule:**  
-        - The follow-up question **must** be formatted as follows, it can be related to course information or time planning :
+        - The follow-up question **must** be formatted as follows, it can be related to course information or time planning,ensuring the topic is specific enough to provide a direct answer. :
         Follow-Up (visible): Would you like to know [specific topic]?
         Follow-Up (bot format): I want to know [specific topic].
         
@@ -182,7 +182,7 @@ def program_agent(query, sessionID):
         - Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
 
         📌 **Follow-Up Formatting Rule:**  
-        - The follow-up question **must** be formatted as follows, it can be related to course information or time planning  or program information:
+        - The follow-up question **must** be formatted as follows, it can be related to course information or time planning  or program information,ensuring the topic is specific enough to provide a direct answer. :
         Follow-Up (visible): Would you like to know [specific topic]?
         Follow-Up (bot format): I want to know [specific topic].
         
@@ -295,7 +295,7 @@ def planning_agent(query, sessionID):
                 - Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
 
                 📌 **Follow-Up Formatting Rule:**  
-                - The follow-up question **must** be formatted as follows, it can be related to course information or time planning  or program information:
+                - The follow-up question **must** be formatted as follows, it can be related to course information or time planning  or program information,ensuring the topic is specific enough to provide a direct answer. :
                 Follow-Up (visible): Would you like to know [specific topic]?
                 Follow-Up (bot format): I want to know [specific topic].
                 
