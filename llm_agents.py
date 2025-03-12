@@ -6,7 +6,7 @@ from datetime import datetime
 import agent_tools
 import re
 
-# ROUTER AGENT
+# ROUTER AGENTa
 # Classify user message request and route to correct response
 def router_agent(query, sessionID):
     """
@@ -295,7 +295,7 @@ def planning_agent(query, sessionID):
                 - Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
 
                 📌 **Follow-Up Formatting Rule:**  
-                - The follow-up question **must** be formatted as follows, it can be related to course information or time planning  or program information,ensuring the topic is specific enough to provide a direct answer. :
+                - The follow-up question **must** be formatted as follows, it can be related to course information or time planning  or program information,ensuring the topic is specific enough to provide a direct answer:
                 Follow-Up (visible): Would you like to know [specific topic]?
                 Follow-Up (bot format): I want to know [specific topic].
                 

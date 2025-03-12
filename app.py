@@ -52,10 +52,7 @@ def main():
                     ✅ "I'm interested in AI—can you recommend three courses?"
                     ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
                     
-                    - **CS Department Contact**
-                    
-                    - **Job Recommendation**
-                    ✅ "What job can I do if I take CS160 Algorithm"
+                   
                         """,
                 "attachments": [ 
                     agent_tools.welcome_buttons()
@@ -88,8 +85,7 @@ def main():
                     
                     - **CS Department Contact**
                     
-                    - **Job Recommendation**
-                    ✅ "What job can I do if I take CS160 Algorithm"
+                    
                     """,
             "attachments": [ 
                 agent_tools.capabilites_buttons()
@@ -126,10 +122,7 @@ def main():
             ✅ "I'm interested in AI—can you recommend three courses?"
             ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
                     
-            - **CS Department Contact**
-                    
-            - **Job Recommendation**
-            ✅ "What job can I do if I take CS160 Algorithm"
+            
             """
 
         }
