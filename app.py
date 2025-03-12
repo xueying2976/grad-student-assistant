@@ -6,6 +6,7 @@ import llm_agents
 import agent_tools
 import env_variables
 from random import randint
+import threading
 
 # LLM - User Message:
 # State what tools are available, be candid to any user prompt.
@@ -148,5 +149,6 @@ def page_not_found(e):
 
 if __name__ == "__main__":
     if env_variables.needToUpload:
-        upload_rag.upload_all()
+        t = threading.Thread(target=upload_rag.upload_all)
+        t.start()
     app.run(host='0.0.0.0', port=8000)
