@@ -11,6 +11,8 @@ def upload_files(file_path):
     print(response)
 
 def upload_all():
-    for i in range(5):
-        upload_files(f'RAG Files 2/context2-{i+1}.pdf')
+    for i in range(6):
+        file = f'RAG Files 2/context2-{i+1}.pdf'
+        upload_files(file)
+        print("Uploaded file: " + file)
         time.sleep(9)

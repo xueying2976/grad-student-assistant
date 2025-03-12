@@ -34,12 +34,13 @@ def router_agent(query, sessionID):
     2. CAPABILITIES - the user asks what can you do.
     3. PROGRAM - the user asks questions about credit requirement, academic rules, or degree requirements.
     4. PLANNING - the user want to help selecting courses based on credits, interests, or time constrains.
-    5. COURSE - the user asks information about an specific course, such as: syllabus inquiry, gradin policies prerequisites, time schedule, title or professor.
-    6. CLARIFY - you are not clear about user's question or intent, need to ask further question for clarification.
+    5. COURSE - the user asks information about an specific course, such as: syllabus inquiry, gradin policies prerequisites, time schedule, title or professor. 
+      If the question contains a course code like "CS-XXX" or "CSXXXX", where "CS" is followed by 2-5 digits (e.g. CS-0004 is a course), make sure it is categorized to COURSE. 
+    6. CLARIFY - you are not clear about user's question or intent, need to ask further question for clarification. If you can inmply If the user's question is ambiguous but you can infer what they might be asking, include an additional response:
+      However, I guess you might be asking: <your best guess at their intended question. Then, attempt to answer the guessed question>.
     7. CONTACT - the user needs information to contact cs department, such as: email address, phone number, address, website link, faculty.
     8. MESSAGE DPT - the user explicitly states that wants to send a message to the CS Department.
-    9. JOB - the user explicitly requests job recommendations related to a certain class; If the user mentioned [job] wrods, make sure it is categorized into Job. if no specific class name or class description is provided, it should fall into the CLARIFY category.
-    10. INVALID - the user asks questions outside computer science, cs department contact information and the available tools.
+    9. INVALID - the user asks questions outside computer science, cs department contact information and the available tools.
 
     ## Response Instructions ##
     Always produce a prompt and category for the response.
@@ -59,7 +60,7 @@ def router_agent(query, sessionID):
 
     category, prompt = agent_tools.category_prompt_re_match(response)
 
-    print(f"Category ({category}), prompt: {prompt}")
+    print(f"Category: {category}\nPrompt: {prompt}")
 
     return category, prompt
 
@@ -85,6 +86,8 @@ def course_agent(query, sessionID):
         - **If the user's question is unclear**, ask for clarification (e.g., preferred semester, professor name).
         - **ALWAYS provide at least one follow-up question** to encourage further discussion.
         - Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
+        - If you can inmply If the user's question is ambiguous but you can infer what they might be asking, include an additional response:
+        However, I guess you might be asking: //your best guess at their intended question. Then, attempt to answer the guessed question.
 
 
         📌 **Follow-Up Formatting Rule:**  
@@ -351,47 +354,45 @@ locationId = 102380872
 x_rapidapi_host = 'linkedin-data-api.p.rapidapi.com'
 x_rapidapi_key = 'cfd585ecdemshc2f7759959ed435p17fa0fjsn4ba89051e09f'
 
-def job_agent(query, sessionID):
-    skill = generate(
-        model="4o-mini",
-        system='''You'll be provided with a class name and a description of the class.
-        Repsond with a single word or phrase that is the key skill or concept that the class teaches.
-        ''',
-        query=query,
-        temperature=0,
-        lastk=1024,
-        session_id=sessionID,
-    )
-    if isinstance(skill, dict):
-        skill = skill['response']
+# def job_agent(query, sessionID):
+#     skill = generate(
+#         model="4o-mini",
+#         system='''You'll be provided with a class name and a description of the class.
+#         Repsond with a single word or phrase that is the key skill or concept that the class teaches.
+#         ''',
+#         query=query,
+#         temperature=0,
+#         lastk=1024,
+#         session_id=sessionID,
+#     )
+#     if isinstance(skill, dict):
+#         skill = skill['response']
 
-    print(f'Skill identified: {skill}')
+#     print(f'Skill identified: {skill}')
     
-    encoded_skill = urllib.parse.quote(skill)
-    linkedin_url = f"https://linkedin-data-api.p.rapidapi.com/search-jobs-v2?locationId={locationId}&keywords={encoded_skill}&datePosted=anyTime&sort=mostRelevant"
-    jobs = requests.get(linkedin_url, headers={
-        'x-rapidapi-key': x_rapidapi_key,
-        'x-rapidapi-host': x_rapidapi_host,
-    })
+#     encoded_skill = urllib.parse.quote(skill)
+#     linkedin_url = f"https://linkedin-data-api.p.rapidapi.com/search-jobs-v2?locationId={locationId}&keywords={encoded_skill}&datePosted=anyTime&sort=mostRelevant"
+#     jobs = requests.get(linkedin_url, headers={
+#         'x-rapidapi-key': x_rapidapi_key,
+#         'x-rapidapi-host': x_rapidapi_host,
+#     })
 
-    response = generate(
-        model="4o-mini",
-        system='''You'll be provided with a list of jobs that are related to the skill or concept that you provided.
-        Show the list of jobs in the most readable way possible and at the same time be specific about the jobs, 
-        and summarize the jobs in a single sentence.
-        ''',
-        query=f'''Show the list of jobs in the most readable way possible, and summarize the jobs in a single sentence.
+#     response = generate(
+#         model="4o-mini",
+#         system='''You'll be provided with a list of jobs that are related to the skill or concept that you provided.
+#         Show the list of jobs in the most readable way possible and at the same time be specific about the jobs, 
+#         and summarize the jobs in a single sentence.
+#         ''',
+#         query=f'''Show the list of jobs in the most readable way possible, and summarize the jobs in a single sentence.
         
-        {jobs.text}
-        ''',
-        temperature=0,
-        lastk=1024,
-        session_id=sessionID,
-    )
+#         {jobs.text}
+#         ''',
+#         temperature=0,
+#         lastk=1024,
+#         session_id=sessionID,
+#     )
     
-    if isinstance(response, dict):
-        return response['response']
+#     if isinstance(response, dict):
+#         return response['response']
 
-    return response
-
-
+#     return response

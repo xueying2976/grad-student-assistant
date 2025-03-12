@@ -35,25 +35,27 @@ def main():
     # Receive and classify user's query
     category, prompt = llm_agents.router_agent(message, user)
 
-    print(f"Prompt: {prompt}")
     response = {"text": "Not Available. Try again."}
 
     if category == 'WELCOME':
             response = {
                 "text": f"""
-                        Hello, I can help you with: (version: {env_variables.version})
-                        - Course Information
-                        - Program Requirements
-                        - Course Planning
-                        - CS Department Contact
-                        - Job Recommendation
-                        💡 Here are some example questions you can ask me:
-                        ✅ "If I take both COMP 150-SEN and CS 15, can you give me the March schedule for both classes?"
-                        ✅ "How many credits do you recommend per semester for a CS graduate student?"
-                        ✅ "Can you provide the grading formula for CS160?"
-                        ✅ "I'm interested in AI—can you recommend three courses?"
-                        ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
-                        ✅ "What job can I do if I take CS160 Algorithm"
+                    I can help you with :
+                    - **Course Information(25 spring semester courses)**
+                    ✅ "Can you provide the grading formula for CS160?"
+                    
+                    - **Program Requirements (2025)**
+                    ✅ "How many credits do you recommend per semester for a CS graduate student?"
+                    
+                    - **Course Planning(25 spring semester courses)**
+                    ✅ "If I take both COMP 150-SEN and CS 15, can you give me the March schedule for both classes?"
+                    ✅ "I'm interested in AI—can you recommend three courses?"
+                    ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
+                    
+                    - **CS Department Contact**
+                    
+                    - **Job Recommendation**
+                    ✅ "What job can I do if I take CS160 Algorithm"
                         """,
                 "attachments": [ 
                     agent_tools.welcome_buttons()
@@ -72,20 +74,22 @@ def main():
     if category == 'CAPABILITIES':
         response = {
             "text": f"""
-                    I can help you with:
-                    - Course Information
-                    - Program Requirements
-                    - Course Planning
-                    - CS Department Contact
-                    - Job Recommendation
-                    💡 Here are some example questions you can ask me:
-                    ✅ "If I take both COMP 150-SEN and CS 15, can you give me the March schedule for both classes?"
-                    ✅ "How many credits do you recommend per semester for a CS graduate student?"
+                    I can help you with :
+                    - **Course Information(25 spring semester courses)**
                     ✅ "Can you provide the grading formula for CS160?"
+                    
+                    - **Program Requirements (2025)**
+                    ✅ "How many credits do you recommend per semester for a CS graduate student?"
+                    
+                    - **Course Planning(25 spring semester courses)**
+                    ✅ "If I take both COMP 150-SEN and CS 15, can you give me the March schedule for both classes?"
                     ✅ "I'm interested in AI—can you recommend three courses?"
                     ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
+                    
+                    - **CS Department Contact**
+                    
+                    - **Job Recommendation**
                     ✅ "What job can I do if I take CS160 Algorithm"
-
                     """,
             "attachments": [ 
                 agent_tools.capabilites_buttons()
@@ -105,9 +109,29 @@ def main():
             "text": agent_tools.message_user(prompt, "javier.villegas_nunez")
         }
 
-    if category == 'INVALID':
+    if category == 'INVALID': # need optimize 
         response = {
-            "text": "I am sorry I can only help you with questions regarding the 🐘 CS Department"
+            "text": f""" {prompt}
+            I am sorry I can only help you with questions regarding the 🐘 CS Department.
+            
+            I can help you with :
+            - **Course Information(25 spring semester courses)**
+            ✅ "Can you provide the grading formula for CS160?"
+                    
+            - **Program Requirements (2025)**
+            ✅ "How many credits do you recommend per semester for a CS graduate student?"
+                    
+            - **Course Planning(25 spring semester courses)**
+            ✅ "If I take both COMP 150-SEN and CS 15, can you give me the March schedule for both classes?"
+            ✅ "I'm interested in AI—can you recommend three courses?"
+            ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
+                    
+            - **CS Department Contact**
+                    
+            - **Job Recommendation**
+            ✅ "What job can I do if I take CS160 Algorithm"
+            """
+
         }
         
     if category == 'CLARIFY':
@@ -118,10 +142,10 @@ def main():
     if category == "PLANNING":
         response = llm_agents.planning_agent(prompt, user)
         
-    if category == 'JOB':
-        response = {
-            "text": llm_agents.job_agent(prompt, user)
-        }
+    # if category == 'JOB':
+    #     response = {
+    #         "text": llm_agents.job_agent(prompt, user)
+    #     }
     
     return jsonify(response)
     
