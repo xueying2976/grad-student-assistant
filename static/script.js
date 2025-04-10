@@ -29,7 +29,6 @@ function addMessage(text, className) {
   if (className === "user-message") {
     messageDiv.textContent = text;
   } else {
-    console.log(text)
     messageDiv.innerHTML = marked.parse(text)
   }
   document.getElementById("messages").appendChild(messageDiv);

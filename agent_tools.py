@@ -67,13 +67,6 @@ def welcome_buttons():
             },
             {
                 "type": "button",
-                "text": "🎓 Program\nInfo",
-                "msg": f"Can you provide details on the requirements for the [undergraduate/graduate/PhD] [degree/program name], including total credits, core courses, electives, and any additional graduation requirements (e.g., thesis, capstone project)",
-                "msg_in_chat_window": True,
-                "msg_processing_type": "respondWithMessage"
-            },
-            {
-                "type": "button",
                 "text": "🗓️ Course\nPlanning",
                 "msg": f"I am planning my courses for [semester/year] and have specific scheduling preferences. Can you suggest real courses that fit these criteria: [number of credits], available on [days], and including/preferably [preferred courses, if any] while fulfilling prerequisites [prerequisite course, if any]",
                 "msg_in_chat_window": True,
@@ -83,16 +76,6 @@ def welcome_buttons():
                 "type": "button",
                 "text": "📞 Contact\nDepartment",
                 "msg": "I would like help with cs department contact information",
-                "msg_in_chat_window": True,
-                "msg_processing_type": "respondWithMessage"
-            },
-            {
-                "type": "button",
-                "text": "👩🏻‍💻 Job\nRecommendation",
-                "msg": f"""                
-	            I am interested in job opportunities related to the course [course name & course code].
-                Can you provide some related job?
-                """,
                 "msg_in_chat_window": True,
                 "msg_processing_type": "respondWithMessage"
             }

@@ -31,22 +31,18 @@ def router_agent(query, sessionID):
     ## Category ##
     Your job for this parameter is to analyze the newly created effective prompt and classify the prompt in one the following categories:
     1. WELCOME - the user salutes
-    2. CAPABILITIES - the user asks what can you do.
-    3. PROGRAM - the user asks questions about credit requirement, academic rules, or degree requirements.
-    4. PLANNING - the user want to help selecting courses based on credits, interests, or time constrains.
-    5. COURSE - the user asks information about an specific course, such as: syllabus inquiry, gradin policies prerequisites, time schedule, title or professor. 
+    2. CAPABILITIES - the user asks what you can do.
+    3. PLANNING - the user want to help selecting courses based on credits, interests, or time constrains.
+    4. COURSE - the user asks information about an specific course, such as: syllabus inquiry, gradin policies prerequisites, time schedule, title or professor. 
       If the question contains a course code like "CS-XXX" or "CSXXXX", where "CS" is followed by 2-5 digits (e.g. CS-0004 is a course), make sure it is categorized to COURSE. 
-    6. CLARIFY - you are not clear about user's question or intent, need to ask further question for clarification. If you can inmply If the user's question is ambiguous but you can infer what they might be asking, include an additional response:
+    5. CLARIFY - you are not clear about user's question or intent, need to ask further question for clarification. If you can inmply If the user's question is ambiguous but you can infer what they might be asking, include an additional response:
       However, I guess you might be asking: <your best guess at their intended question. Then, attempt to answer the guessed question>.
-    7. CONTACT - the user needs information to contact cs department, such as: email address, phone number, address, website link, faculty.
-    8. MESSAGE DPT - the user explicitly states that wants to send a message to the CS Department.
-    9. INVALID - the user asks questions outside computer science, cs department contact information and the available tools.
+    6. INVALID - the user asks questions outside computer science, cs department contact information and the available tools.
 
     ## Response Instructions ##
     Always produce a prompt and category for the response.
     Strictly only respond with the category's name and prompt parameters in the format of "CATEGORY(PROMT)"; See the examples below.
-    - Example response 1: PROGRAM(What are the degree requirements for M.S. in Cybersecurtiy program?)
-    - Exmaple response 2: WELCOME(Hi! How can I assist you today?)
+    - Exmaple response: WELCOME(Hi! How can I assist you today?)
     """
 
     response = generate(
@@ -266,6 +262,28 @@ def contact_agent(query, sessionID):
     return response['response']
 
 
+
+def process_bot_message(user_message, user_name):
+    """
+    Handles bot commands like "send_to_advisor" and sends messages accordingly.
+    """
+    if user_message.startswith("send_to_advisor:"):
+        planning_details = user_message.replace("send_to_advisor:", "").strip()
+
+        # Define the advisor's username
+        advisor_username = "cs_advisor"  # Replace with the actual username
+
+        # Send the message using message_user function
+        message_user(f"📌 Student Course Planning Request:\n\n{planning_details}", advisor_username)
+
+        return {
+            "text": "✅ Your course planning has been sent to your advisor!",
+            "msg_in_chat_window": True
+        }
+
+    return None
+
+
 def planning_agent(query, sessionID):
     query_with_rag_context = agent_tools.query_rag_context(query)
 
@@ -347,6 +365,8 @@ def planning_agent(query, sessionID):
                 }
             ]
         })
+        
+        
     
     print(response)
 

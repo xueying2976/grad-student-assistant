@@ -30,9 +30,6 @@ def main():
     if data.get("bot") or not message:
         return jsonify({"status": "ignored"})
 
-    # Get User message
-    # Check if message is allowed or illegal, return false until get allowed request
-
     # Receive and classify user's query
     category, prompt = llm_agents.router_agent(message, user)
 
@@ -42,38 +39,27 @@ def main():
             response = {
                 "text": f"""
                     I can help you with : (version: {env_variables.version} )
-                    - **Course Information(25 spring semester courses)**
+                    - **Course Information (25 spring semester courses)**
                     ✅ "Can you provide the grading formula for CS160?"
                     
-                    - **Program Requirements (2025)**
-                    ✅ "How many credits do you recommend per semester for a CS graduate student?"
-                    
-                    - **Course Planning(25 spring semester courses)**
+                    - **Course Planning (25 spring semester courses)**
                     ✅ "If I take both COMP 150-SEN and CS 15, can you give me the March schedule for both classes?"
                     ✅ "I'm interested in AI—can you recommend three courses?"
                     ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
-                    
-                   
                         """,
                 "attachments": [ 
                     agent_tools.welcome_buttons()
                 ]
             }
 
-
-
-
     if category == 'COURSE':
         response = llm_agents.course_agent(prompt, user)
-
-    if category == 'PROGRAM':
-        response = llm_agents.program_agent(prompt, user)
 
     if category == 'CAPABILITIES':
         response = {
             "text": f"""
                     I can help you with :
-                    - **Course Information(25 spring semester courses)**
+                    - **Course Information(25 fall semester courses)**
                     ✅ "Can you provide the grading formula for CS160?"
                     
                     - **Program Requirements (2025)**
@@ -91,19 +77,6 @@ def main():
             "attachments": [ 
                 agent_tools.capabilites_buttons()
             ]
-        }
-
-    if category == 'CONTACT':
-        response = {
-            "text": llm_agents.contact_agent(prompt, user),
-            "attachments": [
-                agent_tools.contact_buttons(prompt)
-            ]
-        }
-
-    if category == 'MESSAGE DPT':   
-        response = {
-            "text": agent_tools.message_user(prompt, "javier.villegas_nunez")
         }
 
     if category == 'INVALID': # need optimize 
@@ -125,21 +98,15 @@ def main():
                     
             
             """
-
         }
         
     if category == 'CLARIFY':
         response = {
             "text": prompt
         }
-        
+    
     if category == "PLANNING":
         response = llm_agents.planning_agent(prompt, user)
-        
-    # if category == 'JOB':
-    #     response = {
-    #         "text": llm_agents.job_agent(prompt, user)
-    #     }
     
     return jsonify(response)
     
