@@ -74,7 +74,7 @@ def main():
     if category == 'CAPABILITIES':
         response = {
             "text": f"""
-                    I can help you with :
+                    I can help you with : (version: {env_variables.version})
                     - **Course Information(25 fall semester courses)**
                     ✅ "Can you provide the grading formula for CS160?"
                     
