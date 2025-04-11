@@ -34,6 +34,22 @@ def main():
     category, prompt = llm_agents.router_agent(message, user)
 
     response = {"text": "Not Available. Try again."}
+    
+    if category == 'INTRODUCTION':
+            response = {
+                "text": f"""
+                    I can help you with : (version: {env_variables.version} )
+                    - INTRODUCTION(If you'd like me to help you plan your next semester, please provide the following:
+                    - 🎓 Your year (e.g. First-year Master's, Sophomore)
+                    - 📚 Courses you've already taken
+                    - 💡 Interest areas (AI, Cybersecurity...)
+                    - 📅 Preferred class days
+                    - 🔢 Desired number of credits
+                    - 🎯 Specific courses you want to take
+                    - 📝 Other notes)
+                        """,
+                
+            }
 
     if category == 'WELCOME':
             response = {
@@ -62,15 +78,14 @@ def main():
                     - **Course Information(25 fall semester courses)**
                     ✅ "Can you provide the grading formula for CS160?"
                     
-                    - **Program Requirements (2025)**
-                    ✅ "How many credits do you recommend per semester for a CS graduate student?"
+                    
                     
                     - **Course Planning(25 spring semester courses)**
                     ✅ "If I take both COMP 150-SEN and CS 15, can you give me the March schedule for both classes?"
                     ✅ "I'm interested in AI—can you recommend three courses?"
                     ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
                     
-                    - **CS Department Contact**
+                    
                     
                     
                     """,

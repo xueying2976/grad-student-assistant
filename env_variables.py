@@ -12,4 +12,4 @@ x_user_id = os.environ.get("RC_userId")
 # userSessionID = os.environ.get("sessionId")
 # appSessionID = 'AppSessionID-00'
 needToUpload = os.environ.get("needToUpload")
-version = '9'
+version = '14'
