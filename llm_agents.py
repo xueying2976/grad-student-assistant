@@ -94,6 +94,12 @@ def course_agent(query, sessionID):
             - 🌟 **Course Ratings & Reviews** (if available)
             - 🔗 **Official Syllabus Link** (ALWAYS include if available)
 
+            - For syllabus links:
+              * If the syllabus link is found in the RAG data, ALWAYS include it in your response
+              * If no syllabus link exists for the course, explicitly state: "Syllabus link is not currently available for this course."
+              * NEVER use placeholder text like "[Syllabus Link](#)" or similar - if you don't have the link, just say it's not available
+              * Do not make up syllabus links - only provide real ones from the RAG data
+
             Respond using **structured sections** with clear headings and emojis:
 
             - Overview  
@@ -196,39 +202,39 @@ def course_agent(query, sessionID):
     # Extract the generated follow-up question
     visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
 
+    # Clean the response text by removing follow-up formatting instructions
+    cleaned_response = []
+    for line in response_text.splitlines():
+        if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
+            cleaned_response.append(line)
+    
+    response_clean_text = '\n'.join(cleaned_response)
+    response_clean_text = response_clean_text.replace("(visible)", "")
+
+    # Prepare the basic response
     response = {
-        "text": response_text,  # Bot's full response including visible follow-up
+        "text": response_clean_text,  # Bot's clean response without follow-up formatting
         "attachments": []
     }
 
-    # If a valid follow-up question exists, add a button
+    # If a valid follow-up question exists, add a button attachment
     if visible_follow_up and bot_follow_up:
-        # remove bot-format line and any formatting instructions from the response
-        cleaned_response = []
-        for line in response['text'].splitlines():
-            if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
-                cleaned_response.append(line)
-        
-        # Remove any formatting instructions
-        response['text'] = '\n'.join(cleaned_response)
-        response['text'] = response['text'].replace("(visible)", "")
-        
         response["attachments"].append({
             "title": "Follow-Up Question",
-            "text": f"🔍 {visible_follow_up}",
+            "text": f"Would you like to know more?",
             "actions": [
                 {
                     "type": "button",
-                    "text": "✅ Ask This Question",
+                    "text": f"🔍 {visible_follow_up}",
                     "msg": bot_follow_up,  # Sends the "I want to know..." version
                     "msg_in_chat_window": True,
-                    "msg_processing_type": "sendMessage"
+                    "msg_processing_type": "sendMessage",
+                    "button_id": "course_followup_button"
                 }
             ]
         })
     
     print(response)
-
     return response
 
 
@@ -318,33 +324,34 @@ def program_agent(query, sessionID):
     # Extract the generated follow-up question
     visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
 
+    # Clean the response text by removing follow-up formatting instructions
+    cleaned_response = []
+    for line in response_text.splitlines():
+        if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
+            cleaned_response.append(line)
+    
+    response_clean_text = '\n'.join(cleaned_response)
+    response_clean_text = response_clean_text.replace("(visible)", "")
+
+    # Prepare the basic response
     response = {
-        "text": response_text,  # Bot's full response including visible follow-up
+        "text": response_clean_text,  # Bot's clean response without follow-up formatting
         "attachments": []
     }
 
-    # If a valid follow-up question exists, add a button
+    # If a valid follow-up question exists, add a button attachment
     if visible_follow_up and bot_follow_up:
-        # remove bot-format line and any formatting instructions from the response
-        cleaned_response = []
-        for line in response['text'].splitlines():
-            if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
-                cleaned_response.append(line)
-        
-        # Remove any formatting instructions
-        response['text'] = '\n'.join(cleaned_response)
-        response['text'] = response['text'].replace("(visible)", "")
-        
         response["attachments"].append({
             "title": "Follow-Up Question",
-            "text": f"🔍 {visible_follow_up}",
+            "text": f"Would you like to know more?",
             "actions": [
                 {
                     "type": "button",
-                    "text": "✅ Ask This Question",
+                    "text": f"🔍 {visible_follow_up}",
                     "msg": bot_follow_up,  # Sends the "I want to know..." version
                     "msg_in_chat_window": True,
-                    "msg_processing_type": "sendMessage"
+                    "msg_processing_type": "sendMessage",
+                    "button_id": "program_followup_button"
                 }
             ]
         })
@@ -448,12 +455,23 @@ def planning_agent(query, sessionID):
             ---
 
             ### 📚 2. Recommended Courses Table  
-            Provide a markdown table with **3–4 recommended CS courses** that have **NO SCHEDULING CONFLICTS** with each other. Use this exact format:
+            For each recommended course (3-4 courses with NO SCHEDULING CONFLICTS), include:
 
-            | Course Code | Course Name | Credits | Schedule | Time | Instructor | Prerequisites | Tags | Rating |
-            |------------|-------------|---------|----------|------|------------|---------------|------|--------|
-            | CS 180     | Machine Learning | 4 | Mon/Wed | 10:00–11:30 AM | Dr. Smith | CS 15, CS 170 | AI, Core | 4.5/5 |
-            | CS 289     | Software Eng. | 4 | Wed | 1:00–4:00 PM | Prof. Wang | CS 121 | Software Dev | 4.2/5 |
+            **CS 180: Machine Learning**
+            - Credits: 4
+            - Schedule: Mon/Wed 10:00–11:30 AM
+            - Instructor: Dr. Smith
+            - Prerequisites: CS 15, CS 170
+            - Tags: AI, Core
+            - Rating: 4.5/5
+
+            **CS 289: Software Engineering**
+            - Credits: 4
+            - Schedule: Wed 1:00–4:00 PM
+            - Instructor: Prof. Wang
+            - Prerequisites: CS 121
+            - Tags: Software Dev
+            - Rating: 4.2/5
 
             ✅ Critical Requirements:
             - ⚠️ **NEVER include courses with scheduling conflicts in this main recommendation table**
@@ -557,39 +575,39 @@ def planning_agent(query, sessionID):
     # Extract the generated follow-up question
     visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
 
+    # Clean the response text by removing follow-up formatting instructions
+    cleaned_response = []
+    for line in response_text.splitlines():
+        if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
+            cleaned_response.append(line)
+    
+    response_clean_text = '\n'.join(cleaned_response)
+    response_clean_text = response_clean_text.replace("(visible)", "")
+
+    # Prepare the basic response
     response = {
-        "text": response_text,  # Bot's full response including visible follow-up
+        "text": response_clean_text,  # Bot's clean response without follow-up formatting
         "attachments": []
     }
 
-    # If a valid follow-up question exists, add a button
+    # If a valid follow-up question exists, add a button attachment
     if visible_follow_up and bot_follow_up:
-        # remove bot-format line and any formatting instructions from the response
-        cleaned_response = []
-        for line in response['text'].splitlines():
-            if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
-                cleaned_response.append(line)
-        
-        # Remove any formatting instructions
-        response['text'] = '\n'.join(cleaned_response)
-        response['text'] = response['text'].replace("(visible)", "")
-        
         response["attachments"].append({
             "title": "Follow-Up Question",
-            "text": f"🔍 {visible_follow_up}",
+            "text": f"Would you like to know more?",
             "actions": [
                 {
                     "type": "button",
-                    "text": "✅ Ask This Question",
+                    "text": f"🔍 {visible_follow_up}",
                     "msg": bot_follow_up,  # Sends the "I want to know..." version
                     "msg_in_chat_window": True,
-                    "msg_processing_type": "sendMessage"
+                    "msg_processing_type": "sendMessage",
+                    "button_id": "planning_followup_button"
                 }
             ]
         })
     
     print(response)
-
     return response
 
 
@@ -708,37 +726,37 @@ def followup_agent(query, sessionID):
     # Extract the generated follow-up question
     visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
 
+    # Clean the response text by removing follow-up formatting instructions
+    cleaned_response = []
+    for line in response_text.splitlines():
+        if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
+            cleaned_response.append(line)
+    
+    response_clean_text = '\n'.join(cleaned_response)
+    response_clean_text = response_clean_text.replace("(visible)", "")
+
+    # Prepare the basic response
     response = {
-        "text": response_text,  # Bot's full response including visible follow-up
+        "text": response_clean_text,  # Bot's clean response without follow-up formatting
         "attachments": []
     }
 
-    # If a valid follow-up question exists, add a button
+    # If a valid follow-up question exists, add a button attachment
     if visible_follow_up and bot_follow_up:
-        # remove bot-format line and any formatting instructions from the response
-        cleaned_response = []
-        for line in response['text'].splitlines():
-            if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
-                cleaned_response.append(line)
-        
-        # Remove any formatting instructions
-        response['text'] = '\n'.join(cleaned_response)
-        response['text'] = response['text'].replace("(visible)", "")
-        
         response["attachments"].append({
             "title": "Follow-Up Question",
-            "text": f"🔍 {visible_follow_up}",
+            "text": f"Would you like to know more?",
             "actions": [
                 {
                     "type": "button",
-                    "text": "✅ Ask This Question",
+                    "text": f"🔍 {visible_follow_up}",
                     "msg": bot_follow_up,  # Sends the "I want to know..." version
                     "msg_in_chat_window": True,
-                    "msg_processing_type": "sendMessage"
+                    "msg_processing_type": "sendMessage",
+                    "button_id": "followup_followup_button"
                 }
             ]
         })
     
     print(response)
-
     return response
