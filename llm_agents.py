@@ -220,12 +220,14 @@ def course_agent(query, sessionID):
 
     # If a valid follow-up question exists, add button with follow-up question
     if visible_follow_up and bot_follow_up:
+        response["text"] = response_clean_text + "\n\n---\n\nFollow-Up\n\nWould you like to " + visible_follow_up + "?\nI want to know " + bot_follow_up + "."
         response["attachments"] = [
             {
+                "text": "Would you like to know more?",
                 "actions": [
                     {
                         "type": "button",
-                        "text": f"📌 {visible_follow_up}",
+                        "text": "None",
                         "msg": bot_follow_up,
                         "msg_in_chat_window": True,
                         "msg_processing_type": "sendMessage"
@@ -341,12 +343,14 @@ def program_agent(query, sessionID):
 
     # If a valid follow-up question exists, add button with follow-up question
     if visible_follow_up and bot_follow_up:
+        response["text"] = response_clean_text + "\n\n---\n\nFollow-Up\n\nWould you like to " + visible_follow_up + "?\nI want to know " + bot_follow_up + "."
         response["attachments"] = [
             {
+                "text": "Would you like to know more?",
                 "actions": [
                     {
                         "type": "button",
-                        "text": f"📌 {visible_follow_up}",
+                        "text": "None",
                         "msg": bot_follow_up,
                         "msg_in_chat_window": True,
                         "msg_processing_type": "sendMessage"
@@ -590,12 +594,14 @@ def planning_agent(query, sessionID):
 
     # If a valid follow-up question exists, add button with follow-up question
     if visible_follow_up and bot_follow_up:
+        response["text"] = response_clean_text + "\n\n---\n\nFollow-Up\n\nWould you like to " + visible_follow_up + "?\nI want to know " + bot_follow_up + "."
         response["attachments"] = [
             {
+                "text": "Would you like to know more?",
                 "actions": [
                     {
                         "type": "button",
-                        "text": f"📌 {visible_follow_up}",
+                        "text": "None",
                         "msg": bot_follow_up,
                         "msg_in_chat_window": True,
                         "msg_processing_type": "sendMessage"
@@ -740,12 +746,14 @@ def followup_agent(query, sessionID):
 
     # If a valid follow-up question exists, add button with follow-up question
     if visible_follow_up and bot_follow_up:
+        response["text"] = response_clean_text + "\n\n---\n\nFollow-Up\n\nWould you like to " + visible_follow_up + "?\nI want to know " + bot_follow_up + "."
         response["attachments"] = [
             {
+                "text": "Would you like to know more?",
                 "actions": [
                     {
                         "type": "button",
-                        "text": f"📌 {visible_follow_up}",
+                        "text": "None",
                         "msg": bot_follow_up,
                         "msg_in_chat_window": True,
                         "msg_processing_type": "sendMessage"
