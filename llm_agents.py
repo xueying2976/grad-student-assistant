@@ -214,19 +214,31 @@ def course_agent(query, sessionID):
 
     # Prepare the basic response
     response = {
-        "text": response_clean_text,  # Bot's clean response without follow-up formatting
-        "attachments": [{
-            "actions": [{
-                "type": "button",
-                "text": f"🔍 {visible_follow_up}",
-                "msg": bot_follow_up,
-                "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage"
-            }]
-        }]
+        "text": response_clean_text,
+        "attachments": []
     }
+
+    # If a valid follow-up question exists, add it to the text and create a simple button
+    if visible_follow_up and bot_follow_up:
+        # Add follow-up question to the text
+        response["text"] = response_clean_text + "\n\n---\n\nFollow-Up\n\nWould you like to " + visible_follow_up + "?\nI want to know " + bot_follow_up + "."
+        
+        # Add a simple button structure
+        response["attachments"] = [
+            {
+                "actions": [
+                    {
+                        "type": "button",
+                        "text": "None",
+                        "msg": bot_follow_up,
+                        "msg_in_chat_window": True,
+                        "msg_processing_type": "sendMessage"
+                    }
+                ]
+            }
+        ]
     
-    print(f"Response JSON being sent: {json.dumps(response)}")
+    print(response)
     return response
 
 
@@ -327,37 +339,31 @@ def program_agent(query, sessionID):
 
     # Prepare the basic response
     response = {
-        "text": response_clean_text,  # Bot's clean response without follow-up formatting
-        "attachments": [{
-            "actions": [{
-                "type": "button",
-                "text": f"🔍 {visible_follow_up}",
-                "msg": bot_follow_up,
-                "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage"
-            }]
-        }]
+        "text": response_clean_text,
+        "attachments": []
     }
 
-    # If a valid follow-up question exists, add a button attachment
+    # If a valid follow-up question exists, add it to the text and create a simple button
     if visible_follow_up and bot_follow_up:
-        response["attachments"].append({
-            "title": "Follow-Up Question",
-            "text": f"Would you like to know more?",
-            "actions": [
-                {
-                    "type": "button",
-                    "text": f"🔍 {visible_follow_up}",
-                    "msg": bot_follow_up,  # Sends the "I want to know..." version
-                    "msg_in_chat_window": True,
-                    "msg_processing_type": "sendMessage",
-                    "button_id": "program_followup_button"
-                }
-            ]
-        })
+        # Add follow-up question to the text
+        response["text"] = response_clean_text + "\n\n---\n\nFollow-Up\n\nWould you like to " + visible_follow_up + "?\nI want to know " + bot_follow_up + "."
+        
+        # Add a simple button structure
+        response["attachments"] = [
+            {
+                "actions": [
+                    {
+                        "type": "button",
+                        "text": "None",
+                        "msg": bot_follow_up,
+                        "msg_in_chat_window": True,
+                        "msg_processing_type": "sendMessage"
+                    }
+                ]
+            }
+        ]
     
-    print(f"Response JSON being sent: {json.dumps(response)}")
-
+    print(response)
     return response
 
 # CONTACT INFORMATION AGENT
@@ -586,36 +592,31 @@ def planning_agent(query, sessionID):
 
     # Prepare the basic response
     response = {
-        "text": response_clean_text,  # Bot's clean response without follow-up formatting
-        "attachments": [{
-            "actions": [{
-                "type": "button",
-                "text": f"🔍 {visible_follow_up}",
-                "msg": bot_follow_up,
-                "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage"
-            }]
-        }]
+        "text": response_clean_text,
+        "attachments": []
     }
 
-    # If a valid follow-up question exists, add a button attachment
+    # If a valid follow-up question exists, add it to the text and create a simple button
     if visible_follow_up and bot_follow_up:
-        response["attachments"].append({
-            "title": "Follow-Up Question",
-            "text": f"Would you like to know more?",
-            "actions": [
-                {
-                    "type": "button",
-                    "text": f"🔍 {visible_follow_up}",
-                    "msg": bot_follow_up,  # Sends the "I want to know..." version
-                    "msg_in_chat_window": True,
-                    "msg_processing_type": "sendMessage",
-                    "button_id": "planning_followup_button"
-                }
-            ]
-        })
+        # Add follow-up question to the text
+        response["text"] = response_clean_text + "\n\n---\n\nFollow-Up\n\nWould you like to " + visible_follow_up + "?\nI want to know " + bot_follow_up + "."
+        
+        # Add a simple button structure
+        response["attachments"] = [
+            {
+                "actions": [
+                    {
+                        "type": "button",
+                        "text": "None",
+                        "msg": bot_follow_up,
+                        "msg_in_chat_window": True,
+                        "msg_processing_type": "sendMessage"
+                    }
+                ]
+            }
+        ]
     
-    print(f"Response JSON being sent: {json.dumps(response)}")
+    print(response)
     return response
 
 
@@ -745,34 +746,29 @@ def followup_agent(query, sessionID):
 
     # Prepare the basic response
     response = {
-        "text": response_clean_text,  # Bot's clean response without follow-up formatting
-        "attachments": [{
-            "actions": [{
-                "type": "button",
-                "text": f"🔍 {visible_follow_up}",
-                "msg": bot_follow_up,
-                "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage"
-            }]
-        }]
+        "text": response_clean_text,
+        "attachments": []
     }
 
-    # If a valid follow-up question exists, add a button attachment
+    # If a valid follow-up question exists, add it to the text and create a simple button
     if visible_follow_up and bot_follow_up:
-        response["attachments"].append({
-            "title": "Follow-Up Question",
-            "text": f"Would you like to know more?",
-            "actions": [
-                {
-                    "type": "button",
-                    "text": f"🔍 {visible_follow_up}",
-                    "msg": bot_follow_up,  # Sends the "I want to know..." version
-                    "msg_in_chat_window": True,
-                    "msg_processing_type": "sendMessage",
-                    "button_id": "followup_followup_button"
-                }
-            ]
-        })
+        # Add follow-up question to the text
+        response["text"] = response_clean_text + "\n\n---\n\nFollow-Up\n\nWould you like to " + visible_follow_up + "?\nI want to know " + bot_follow_up + "."
+        
+        # Add a simple button structure
+        response["attachments"] = [
+            {
+                "actions": [
+                    {
+                        "type": "button",
+                        "text": "None",
+                        "msg": bot_follow_up,
+                        "msg_in_chat_window": True,
+                        "msg_processing_type": "sendMessage"
+                    }
+                ]
+            }
+        ]
     
-    print(f"Response JSON being sent: {json.dumps(response)}")
+    print(response)
     return response
