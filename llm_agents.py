@@ -5,7 +5,6 @@ from llmproxy import generate, pdf_upload
 from datetime import datetime
 import agent_tools
 import re
-import json
 
 # ROUTER AGENTa
 # Classify user message request and route to correct response
@@ -95,12 +94,6 @@ def course_agent(query, sessionID):
             - 🌟 **Course Ratings & Reviews** (if available)
             - 🔗 **Official Syllabus Link** (ALWAYS include if available)
 
-            - For syllabus links:
-              * If the syllabus link is found in the RAG data, ALWAYS include it in your response
-              * If no syllabus link exists for the course, explicitly state: "Syllabus link is not currently available for this course."
-              * NEVER use placeholder text like "[Syllabus Link](#)" or similar - if you don't have the link, just say it's not available
-              * Do not make up syllabus links - only provide real ones from the RAG data
-
             Respond using **structured sections** with clear headings and emojis:
 
             - Overview  
@@ -170,22 +163,8 @@ def course_agent(query, sessionID):
             ---
 
             📌 **Follow-Up Formatting Rule:**  
-            - ALWAYS generate a follow-up question that is DIRECTLY RELATED to the course being discussed.
-            - Follow-up suggestions should be SPECIFIC and USEFUL, such as:
-              * Asking about prerequisites for this course
-              * Inquiring about other courses that build on this one
-              * Asking about how this course fits into a specific concentration
-              * Requesting detailed syllabus information
-              * Asking about project examples from the course
-            
-            - Format EXACTLY as follows:
-            Follow-Up (visible): Would you like to know [specific course-related topic]?
-            Follow-Up (bot format): I want to know [same specific course-related topic].
-
-            - Examples of good follow-ups:
-              "Would you like to know what courses build upon CS 160?"
-              "Would you like to know about typical projects in CS 170?"
-              "Would you like to know how this course helps with AI specialization?"
+            - Follow-Up (visible): Would you like to know [specific topic]?
+            - Follow-Up (bot format): I want to know [specific topic].
 
             ⚠️ Do **not** use "Would you like to" in the bot format.  
             Ensure both versions are included for consistent follow-up generation. 
@@ -230,40 +209,22 @@ def course_agent(query, sessionID):
         })
     
     print(response)
+
     return response
 
 
 def extract_follow_up_question(response_text):
     """
     Extracts both the visible and bot-format follow-up question from the response.
-    Uses multiple regex patterns to increase robustness.
     """
-    # Primary pattern - strict format
-    primary_match = re.search(r'Follow-Up \(visible\): (.+?)\n.*?Follow-Up \(bot format\): (.+)', response_text, re.DOTALL)
-    
-    if primary_match:
-        visible_question = primary_match.group(1).strip()
-        bot_question = primary_match.group(2).strip()
+    match = re.search(r'Follow-Up \(visible\): (.+?)\n.*?Follow-Up \(bot format\): (.+)', response_text, re.DOTALL)
+
+    if match:
+        visible_question = match.group(1).strip()
+        bot_question = match.group(2).strip()
         return visible_question, bot_question
-    
-    # Secondary pattern - more flexible
-    secondary_match = re.search(r'Follow-Up.*?visible.*?: (.+?)\n.*?bot format.*?: (.+)', response_text, re.DOTALL | re.IGNORECASE)
-    
-    if secondary_match:
-        visible_question = secondary_match.group(1).strip()
-        bot_question = secondary_match.group(2).strip()
-        return visible_question, bot_question
-    
-    # Last resort - look for any follow-up pattern
-    fallback_match = re.search(r'Follow-Up.*?:\s*(.+)', response_text, re.IGNORECASE)
-    
-    if fallback_match:
-        visible_question = fallback_match.group(1).strip()
-        # Use the same text for both visible and bot format as a fallback
-        return visible_question, visible_question.replace("Would you like to", "I want to")
-    
-    # No follow-up found
-    return None, None
+    else:
+        return None, None  # No follow-up found
 
 # PROGRAM INFORMATION AGENT
 def program_agent(query, sessionID):
@@ -288,21 +249,13 @@ def program_agent(query, sessionID):
         - Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
 
         📌 **Follow-Up Formatting Rule:**  
-        - Generate follow-up questions that are DIRECTLY RELATED to the program information discussed.
-        - Follow-up questions MUST be specific and valuable, such as:
-          * "Would you like to know about internship opportunities in this program?"
-          * "Would you like to see what courses are required for the AI concentration?"
-          * "Would you like to know about research opportunities in this department?"
+        - The follow-up question **must** be formatted as follows, it can be related to course information or time planning  or program information,ensuring the topic is specific enough to provide a direct answer. :
+        Follow-Up (visible): Would you like to know [specific topic]?
+        Follow-Up (bot format): I want to know [specific topic].
         
-        - Format EXACTLY as follows:
-        Follow-Up (visible): Would you like to know [specific program-related question]?
-        Follow-Up (bot format): I want to know [same specific program-related question].
-        
-        - Examples of effective follow-ups:
-          "Would you like to know about the graduation requirements for CS majors?"
-          "Would you like to see what electives are popular among cybersecurity students?"
-          "Would you like to know about faculty research in machine learning?"
-        
+        - The **visible follow-up** should be conversational for readability.  
+        - The **bot format** should be directly actionable and understandable for automated queries.  
+
         ⚠️ **Important:**  
         - **DO NOT** use "Would you like to" in the bot-processing format.  
         - Ensure both formats appear in the response for easy extraction.  
@@ -346,6 +299,7 @@ def program_agent(query, sessionID):
         })
     
     print(response)
+
     return response
 
 # CONTACT INFORMATION AGENT
@@ -443,23 +397,12 @@ def planning_agent(query, sessionID):
             ---
 
             ### 📚 2. Recommended Courses Table  
-            For each recommended course (3-4 courses with NO SCHEDULING CONFLICTS), include:
+            Provide a markdown table with **3–4 recommended CS courses** that have **NO SCHEDULING CONFLICTS** with each other. Use this exact format:
 
-            **CS 180: Machine Learning**
-            - Credits: 4
-            - Schedule: Mon/Wed 10:00–11:30 AM
-            - Instructor: Dr. Smith
-            - Prerequisites: CS 15, CS 170
-            - Tags: AI, Core
-            - Rating: 4.5/5
-
-            **CS 289: Software Engineering**
-            - Credits: 4
-            - Schedule: Wed 1:00–4:00 PM
-            - Instructor: Prof. Wang
-            - Prerequisites: CS 121
-            - Tags: Software Dev
-            - Rating: 4.2/5
+            | Course Code | Course Name | Credits | Schedule | Time | Instructor | Prerequisites | Tags | Rating |
+            |------------|-------------|---------|----------|------|------------|---------------|------|--------|
+            | CS 180     | Machine Learning | 4 | Mon/Wed | 10:00–11:30 AM | Dr. Smith | CS 15, CS 170 | AI, Core | 4.5/5 |
+            | CS 289     | Software Eng. | 4 | Wed | 1:00–4:00 PM | Prof. Wang | CS 121 | Software Dev | 4.2/5 |
 
             ✅ Critical Requirements:
             - ⚠️ **NEVER include courses with scheduling conflicts in this main recommendation table**
@@ -527,16 +470,16 @@ def planning_agent(query, sessionID):
             ---
 
             📌 **Follow-Up Formatting Rule:**  
-            - The follow-up question **must** be formatted as follows, it can be related to course information or time planning or program information:
-            Follow-Up (visible): Would you like to know [specific topic]?
-            Follow-Up (bot format): I want to know [specific topic].
-            
-            - The **visible follow-up** should be conversational for readability.  
-            - The **bot format** should be directly actionable and understandable for automated queries.  
+            Always include a follow-up question block at the end, in **both formats**:
 
-            ⚠️ **Important:**  
-            - **DO NOT** use "Would you like to" in the bot-processing format.  
-            - Ensure both formats appear in the response for easy extraction.
+            - Follow-Up (visible): Would you like to [explore X]?
+            - Follow-Up (bot format): I want to know [explore X].
+
+            ✅ The visible version should be natural and friendly.  
+            ✅ The bot-format version should be structured for backend processing.
+
+            ⚠️ **DO NOT use "Would you like to"** in the **bot-format line**.  
+            ⚠️ **Both versions must appear** in the response, and clearly labeled.
                 
                 """,
         query = query_with_rag_context,
@@ -576,6 +519,8 @@ def planning_agent(query, sessionID):
                 }
             ]
         })
+        
+        
     
     print(response)
 
@@ -670,17 +615,8 @@ def followup_agent(query, sessionID):
             - Always check for and avoid scheduling conflicts in main recommendations
 
             📌 **Follow-Up Formatting Rule:**  
-            - Generate follow-up questions that build naturally on the current conversation.
-            - Follow-up questions MUST be specific and actionable, such as:
-              * "Would you like to know more details about CS 160's projects?"
-              * "Would you like to see how this course compares to CS 170?"
-              * "Would you like to know what career paths this course prepares you for?"
-            
-            - Format EXACTLY as follows:
-            Follow-Up (visible): Would you like to know [specific, contextual question]?
-            Follow-Up (bot format): I want to know [same specific, contextual question].
-            
-            - Each follow-up should deepen the conversation and provide valuable information that logically extends from the current discussion.
+            - Follow-Up (visible): Would you like to know [specific topic]?
+            - Follow-Up (bot format): I want to know [specific topic].
 
             ⚠️ Do **not** use "Would you like to" in the bot format.  
             Ensure both versions are included for consistent follow-up generation.
@@ -724,4 +660,5 @@ def followup_agent(query, sessionID):
         })
     
     print(response)
+
     return response
