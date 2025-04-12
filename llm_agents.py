@@ -5,6 +5,7 @@ from llmproxy import generate, pdf_upload
 from datetime import datetime
 import agent_tools
 import re
+import json
 
 # ROUTER AGENTa
 # Classify user message request and route to correct response
@@ -214,27 +215,18 @@ def course_agent(query, sessionID):
     # Prepare the basic response
     response = {
         "text": response_clean_text,  # Bot's clean response without follow-up formatting
-        "attachments": []
+        "attachments": [{
+            "actions": [{
+                "type": "button",
+                "text": f"🔍 {visible_follow_up}",
+                "msg": bot_follow_up,
+                "msg_in_chat_window": True,
+                "msg_processing_type": "sendMessage"
+            }]
+        }]
     }
-
-    # If a valid follow-up question exists, add a button attachment
-    if visible_follow_up and bot_follow_up:
-        response["attachments"].append({
-            "title": "Follow-Up Question",
-            "text": f"Would you like to know more?",
-            "actions": [
-                {
-                    "type": "button",
-                    "text": f"🔍 {visible_follow_up}",
-                    "msg": bot_follow_up,  # Sends the "I want to know..." version
-                    "msg_in_chat_window": True,
-                    "msg_processing_type": "sendMessage",
-                    "button_id": "course_followup_button"
-                }
-            ]
-        })
     
-    print(response)
+    print(f"Response JSON being sent: {json.dumps(response)}")
     return response
 
 
@@ -336,7 +328,15 @@ def program_agent(query, sessionID):
     # Prepare the basic response
     response = {
         "text": response_clean_text,  # Bot's clean response without follow-up formatting
-        "attachments": []
+        "attachments": [{
+            "actions": [{
+                "type": "button",
+                "text": f"🔍 {visible_follow_up}",
+                "msg": bot_follow_up,
+                "msg_in_chat_window": True,
+                "msg_processing_type": "sendMessage"
+            }]
+        }]
     }
 
     # If a valid follow-up question exists, add a button attachment
@@ -356,7 +356,7 @@ def program_agent(query, sessionID):
             ]
         })
     
-    print(response)
+    print(f"Response JSON being sent: {json.dumps(response)}")
 
     return response
 
@@ -587,7 +587,15 @@ def planning_agent(query, sessionID):
     # Prepare the basic response
     response = {
         "text": response_clean_text,  # Bot's clean response without follow-up formatting
-        "attachments": []
+        "attachments": [{
+            "actions": [{
+                "type": "button",
+                "text": f"🔍 {visible_follow_up}",
+                "msg": bot_follow_up,
+                "msg_in_chat_window": True,
+                "msg_processing_type": "sendMessage"
+            }]
+        }]
     }
 
     # If a valid follow-up question exists, add a button attachment
@@ -607,7 +615,7 @@ def planning_agent(query, sessionID):
             ]
         })
     
-    print(response)
+    print(f"Response JSON being sent: {json.dumps(response)}")
     return response
 
 
@@ -738,7 +746,15 @@ def followup_agent(query, sessionID):
     # Prepare the basic response
     response = {
         "text": response_clean_text,  # Bot's clean response without follow-up formatting
-        "attachments": []
+        "attachments": [{
+            "actions": [{
+                "type": "button",
+                "text": f"🔍 {visible_follow_up}",
+                "msg": bot_follow_up,
+                "msg_in_chat_window": True,
+                "msg_processing_type": "sendMessage"
+            }]
+        }]
     }
 
     # If a valid follow-up question exists, add a button attachment
@@ -758,5 +774,5 @@ def followup_agent(query, sessionID):
             ]
         })
     
-    print(response)
+    print(f"Response JSON being sent: {json.dumps(response)}")
     return response
