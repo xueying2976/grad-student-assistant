@@ -31,14 +31,14 @@ def router_agent(query, sessionID):
     ## Category ##
     Your job for this parameter is to analyze the newly created effective prompt and classify the prompt in one the following categories:
     0. INTRODUCTION - the user wants to start planning their courses and needs guidance on what to provide. This category should be triggered when the user says  "introduction to shedule" without giving details.
-    1. WELCOME - the user salutes
-    2. CAPABILITIES - the user asks what you can do.
-    3. PLANNING - the user want to help selecting courses based on credits, interests, or time constrains.
-    4. COURSE - the user asks information about an specific course, such as: syllabus inquiry, gradin policies prerequisites, time schedule, title or professor. 
+    1. WELCOME - the user salutes or asks what you can do , what you can help with.
+    2. PLANNING - the user want to help selecting courses based on credits, interests, or time constrains.
+    3. COURSE - the user asks information about an specific course, such as: syllabus inquiry, gradin policies prerequisites, time schedule, title or professor. 
       If the question contains a course code like "CS-XXX" or "CSXXXX", where "CS" is followed by 2-5 digits (e.g. CS-0004 is a course), make sure it is categorized to COURSE. 
-    5. CLARIFY - you are not clear about user's question or intent, need to ask further question for clarification. If you can inmply If the user's question is ambiguous but you can infer what they might be asking, include an additional response:
+    4. CLARIFY - you are not clear about user's question or intent, need to ask further question for clarification. If you can inmply If the user's question is ambiguous but you can infer what they might be asking, include an additional response:
       However, I guess you might be asking: <your best guess at their intended question. Then, attempt to answer the guessed question>.
-    6. INVALID - the user asks questions outside computer science, cs department contact information and the available tools.
+    5. INVALID - the user asks questions outside computer science, cs department contact information and the available tools.
+    6. FOLLOWUP - the user is asking a follow-up question related to a previous response. This category should be triggered when the user's message clearly refers to previous information or when they ask for more details about something mentioned in the previous responses. Analyze the context of the conversation to determine the best way to answer the follow-up question.
 
     ## Response Instructions ##
     Always produce a prompt and category for the response.
@@ -90,18 +90,26 @@ def course_agent(query, sessionID):
             - 📊 **Grading Formula** (e.g. homework %, exam %, final project %)
             - 📝 **Assignments or Projects** (e.g. weekly problem sets, group projects)
             - 🕐 **Class Times & Instructors** (from different sections if available)
-            - 💡 **Prerequisites or recommended background**
-            - 🔗 **Official Syllabus Link** (always include if available)
+            - 💡 **Prerequisites or recommended background** - ALWAYS clearly state prerequisites for any course
+            - 🌟 **Course Ratings & Reviews** (if available)
+            - 🔗 **Official Syllabus Link** (ALWAYS include if available)
 
             Respond using **structured sections** with clear headings and emojis:
 
             - Overview  
             - Schedule & Instructor  
+            - Prerequisites (MUST be included and clearly stated)
             - Grading Breakdown  
             - Assignments & Structure  
-            - Prerequisites  
-            - Syllabus Link  
+            - Course Ratings & Reviews (if available)
+            - Syllabus Link (MUST include if available)
             - Follow-Up
+
+            When discussing the course, also consider:
+            - How this course fits into broader curriculum planning
+            - The relevance of this course to user's stated interests or needs
+            - Potential conflicts with other mentioned courses
+            - Detailed rationale for why this course might be valuable
 
         📎 Example format:
 
@@ -119,6 +127,11 @@ def course_agent(query, sessionID):
         | 01     | Tue/Thu | 10:30–11:45 AM | Medford/Somerville | Jivko Sinapov |
         | M1     | Wed | 7:00–8:30 PM | Online | TBD |
 
+        🧠 **Prerequisites:**  
+        - CS15  
+        - (CS/Math 61 or Math 65)  
+        - Or Graduate Standing
+
         📊 **Grading:**
         > Currently not specified in the RAG syllabus.  
         > ✅ You can check the official syllabus for updates.
@@ -129,14 +142,12 @@ def course_agent(query, sessionID):
         > - Midterm & final exams  
         > - Class participation
 
-        🧠 **Prerequisites:**  
-        - CS15  
-        - (CS/Math 61 or Math 65)  
-        - Or Graduate Standing
+        🌟 **Course Ratings & Reviews:**
+        > Average rating: 4.2/5.0
+        > Student feedback highlights challenging but rewarding content
 
         📎 **Syllabus Link:**  
         🔗 [CS131 Syllabus](https://www.cs.tufts.edu/comp/131/)
-
 
             📌 Course Syllabus Sources:
             - CS115: https://davelillethun.wordpress.com/teaching/cs115/
@@ -152,8 +163,22 @@ def course_agent(query, sessionID):
             ---
 
             📌 **Follow-Up Formatting Rule:**  
-            - Follow-Up (visible): Would you like to know [specific topic]?
-            - Follow-Up (bot format): I want to know [specific topic].
+            - ALWAYS generate a follow-up question that is DIRECTLY RELATED to the course being discussed.
+            - Follow-up suggestions should be SPECIFIC and USEFUL, such as:
+              * Asking about prerequisites for this course
+              * Inquiring about other courses that build on this one
+              * Asking about how this course fits into a specific concentration
+              * Requesting detailed syllabus information
+              * Asking about project examples from the course
+            
+            - Format EXACTLY as follows:
+            Follow-Up (visible): Would you like to know [specific course-related topic]?
+            Follow-Up (bot format): I want to know [same specific course-related topic].
+
+            - Examples of good follow-ups:
+              "Would you like to know what courses build upon CS 160?"
+              "Would you like to know about typical projects in CS 170?"
+              "Would you like to know how this course helps with AI specialization?"
 
             ⚠️ Do **not** use "Would you like to" in the bot format.  
             Ensure both versions are included for consistent follow-up generation. 
@@ -178,9 +203,14 @@ def course_agent(query, sessionID):
 
     # If a valid follow-up question exists, add a button
     if visible_follow_up and bot_follow_up:
-        # remove bot-format line
-        response['text'] = "\n".join(response['text'].splitlines()[:-1])
-        # remove "(visible)"
+        # remove bot-format line and any formatting instructions from the response
+        cleaned_response = []
+        for line in response['text'].splitlines():
+            if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
+                cleaned_response.append(line)
+        
+        # Remove any formatting instructions
+        response['text'] = '\n'.join(cleaned_response)
         response['text'] = response['text'].replace("(visible)", "")
         
         response["attachments"].append({
@@ -205,15 +235,34 @@ def course_agent(query, sessionID):
 def extract_follow_up_question(response_text):
     """
     Extracts both the visible and bot-format follow-up question from the response.
+    Uses multiple regex patterns to increase robustness.
     """
-    match = re.search(r'Follow-Up \(visible\): (.+?)\n.*?Follow-Up \(bot format\): (.+)', response_text, re.DOTALL)
-
-    if match:
-        visible_question = match.group(1).strip()
-        bot_question = match.group(2).strip()
+    # Primary pattern - strict format
+    primary_match = re.search(r'Follow-Up \(visible\): (.+?)\n.*?Follow-Up \(bot format\): (.+)', response_text, re.DOTALL)
+    
+    if primary_match:
+        visible_question = primary_match.group(1).strip()
+        bot_question = primary_match.group(2).strip()
         return visible_question, bot_question
-    else:
-        return None, None  # No follow-up found
+    
+    # Secondary pattern - more flexible
+    secondary_match = re.search(r'Follow-Up.*?visible.*?: (.+?)\n.*?bot format.*?: (.+)', response_text, re.DOTALL | re.IGNORECASE)
+    
+    if secondary_match:
+        visible_question = secondary_match.group(1).strip()
+        bot_question = secondary_match.group(2).strip()
+        return visible_question, bot_question
+    
+    # Last resort - look for any follow-up pattern
+    fallback_match = re.search(r'Follow-Up.*?:\s*(.+)', response_text, re.IGNORECASE)
+    
+    if fallback_match:
+        visible_question = fallback_match.group(1).strip()
+        # Use the same text for both visible and bot format as a fallback
+        return visible_question, visible_question.replace("Would you like to", "I want to")
+    
+    # No follow-up found
+    return None, None
 
 # PROGRAM INFORMATION AGENT
 def program_agent(query, sessionID):
@@ -238,13 +287,21 @@ def program_agent(query, sessionID):
         - Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
 
         📌 **Follow-Up Formatting Rule:**  
-        - The follow-up question **must** be formatted as follows, it can be related to course information or time planning  or program information,ensuring the topic is specific enough to provide a direct answer. :
-        Follow-Up (visible): Would you like to know [specific topic]?
-        Follow-Up (bot format): I want to know [specific topic].
+        - Generate follow-up questions that are DIRECTLY RELATED to the program information discussed.
+        - Follow-up questions MUST be specific and valuable, such as:
+          * "Would you like to know about internship opportunities in this program?"
+          * "Would you like to see what courses are required for the AI concentration?"
+          * "Would you like to know about research opportunities in this department?"
         
-        - The **visible follow-up** should be conversational for readability.  
-        - The **bot format** should be directly actionable and understandable for automated queries.  
-
+        - Format EXACTLY as follows:
+        Follow-Up (visible): Would you like to know [specific program-related question]?
+        Follow-Up (bot format): I want to know [same specific program-related question].
+        
+        - Examples of effective follow-ups:
+          "Would you like to know about the graduation requirements for CS majors?"
+          "Would you like to see what electives are popular among cybersecurity students?"
+          "Would you like to know about faculty research in machine learning?"
+        
         ⚠️ **Important:**  
         - **DO NOT** use "Would you like to" in the bot-processing format.  
         - Ensure both formats appear in the response for easy extraction.  
@@ -268,9 +325,14 @@ def program_agent(query, sessionID):
 
     # If a valid follow-up question exists, add a button
     if visible_follow_up and bot_follow_up:
-        # remove bot-format line
-        response['text'] = "\n".join(response['text'].splitlines()[:-1])
-        # remove "(visible)"
+        # remove bot-format line and any formatting instructions from the response
+        cleaned_response = []
+        for line in response['text'].splitlines():
+            if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
+                cleaned_response.append(line)
+        
+        # Remove any formatting instructions
+        response['text'] = '\n'.join(cleaned_response)
         response['text'] = response['text'].replace("(visible)", "")
         
         response["attachments"].append({
@@ -386,35 +448,61 @@ def planning_agent(query, sessionID):
             ---
 
             ### 📚 2. Recommended Courses Table  
-            Provide a markdown table with **3–4 recommended CS courses**. Use this exact format:
+            Provide a markdown table with **3–4 recommended CS courses** that have **NO SCHEDULING CONFLICTS** with each other. Use this exact format:
 
-            | Course Code | Course Name              | Credits | Schedule   | Time             | Instructor        | Tags                         |
-            |-------------|---------------------------|---------|------------|------------------|-------------------|------------------------------|
-            | CS 180      | Machine Learning          | 4       | Mon/Wed    | 10:00–11:30 AM   | Dr. Andrew Smith  | AI, Core                     |
-            | CS 289      | Software Systems Eng.     | 4       | Wed        | 1:00–4:00 PM     | Prof. Lee Wang    | Software Dev, Elective       |
+            | Course Code | Course Name | Credits | Schedule | Time | Instructor | Prerequisites | Tags | Rating |
+            |------------|-------------|---------|----------|------|------------|---------------|------|--------|
+            | CS 180     | Machine Learning | 4 | Mon/Wed | 10:00–11:30 AM | Dr. Smith | CS 15, CS 170 | AI, Core | 4.5/5 |
+            | CS 289     | Software Eng. | 4 | Wed | 1:00–4:00 PM | Prof. Wang | CS 121 | Software Dev | 4.2/5 |
 
-            ✅ Tips:
-            - ⚠️ Avoid early classes or unwanted days if the student indicated so
-            - ⚠️ Reference real Tufts CS course names & times when available
-            - Only use classes that are open and non-conflicting
+            ✅ Critical Requirements:
+            - ⚠️ **NEVER include courses with scheduling conflicts in this main recommendation table**
+            - ⚠️ **ALWAYS include prerequisites** for each recommended course
+            - ⚠️ List course ratings when available (e.g., "4.3/5")
+            - Avoid early classes or unwanted days if the student indicated so
+            - Reference real Tufts CS course names & times when available
+            - Only include courses that can actually be taken together in the same semester
+            - Include syllabus links when available
 
             ---
 
-            ### 📈 3. Course Summary  
+            ### 📚 3. Alternative Courses  
+            Provide 2-3 alternative courses that could replace the recommended ones, with brief explanations of:
+            - Why they might be suitable alternatives
+            - How they compare to the main recommendations
+            - Any advantages/disadvantages they might have
+            - ⚠️ **Clearly mark any scheduling conflicts** with other recommended courses
+
+            ---
+
+            ### 📈 4. Course Summary  
             Use bullets or checklist:
-            - ✅ Total Credits  
+            - ✅ Total Credits: [Sum of credits from the non-conflicting recommended courses only]
             - ✅ Interest Areas Covered  
             - ✅ Days of Week used  
             - ✅ Whether early classes were avoided (if applicable)
+            - ✅ Prerequisites that need to be satisfied
 
             ---
 
-            ### 🧠 4. LLM's Reasoning  
-            In 2–4 sentences, explain **why** these courses were selected for the student based on their inputs.
+            ### 🧠 5. Detailed Reasoning  
+            In 4-6 sentences, provide a **detailed explanation** of:
+            - Why these specific courses were selected for the student
+            - How they align with the student's goals and interests
+            - The rationale behind course prioritization
+            - How prerequisites are satisfied or need to be addressed
+            - Any trade-offs made in the recommendations
 
             ---
 
-            ### ✨ 5. Additional Suggestions (optional)  
+            ### 🔗 6. Course Resources  
+            For each recommended course, include:
+            - 🔗 Syllabus link (if available)
+            - 📊 Any additional resources that might help the student
+
+            ---
+
+            ### ✨ 7. Additional Suggestions  
             Provide 1–3 helpful next steps:
             - 📌 Join CS research talks
             - 📌 Apply for TA/RA positions
@@ -424,22 +512,36 @@ def planning_agent(query, sessionID):
 
             ✅ Formatting Guidelines:
             - Use clear section headers (### + emojis)
-            - Use bold or markdown tables for course recommendations
+            - Use markdown tables for course recommendations
             - Do NOT summarize in paragraph form
             - If student input is missing, say so politely and provide best-effort recommendations
+            - **Double-check that there are NO scheduling conflicts between recommended courses**
+            - **Ensure Total Credits reflects ONLY the sum of credits from courses that can actually be taken together**
 
             ---
 
             📌 **Follow-Up Formatting Rule:**  
             Always include a follow-up question block at the end, in **both formats**:
-
-            - Follow-Up (visible): Would you like to [explore X]?
-            - Follow-Up (bot format): I want to know [explore X].
+            
+            - Follow-up questions MUST be specific and directly related to course planning, such as:
+              * Asking about specific course details: "Would you like to know more details about CS 160?"
+              * Inquiring about prerequisites: "Would you like to know what prerequisites you need to complete first?"
+              * Requesting alternative schedules: "Would you like to see a schedule focused more on [specific interest]?"
+              * Asking about future semesters: "Would you like to plan your next semester after this one?"
+            
+            - Format EXACTLY as follows:
+            Follow-Up (visible): Would you like to [specific planning-related question]?
+            Follow-Up (bot format): I want to know [same specific planning-related question].
+            
+            - Examples of strong follow-ups:
+              "Would you like to know more details about CS 116's coursework and projects?"
+              "Would you like to see what your schedule might look like if focused on AI instead of cybersecurity?"
+              "Would you like to know about summer courses that complement this plan?"
 
             ✅ The visible version should be natural and friendly.  
             ✅ The bot-format version should be structured for backend processing.
 
-            ⚠️ **DO NOT use “Would you like to”** in the **bot-format line**.  
+            ⚠️ **DO NOT use "Would you like to"** in the **bot-format line**.  
             ⚠️ **Both versions must appear** in the response, and clearly labeled.
                 
                 """,
@@ -462,9 +564,14 @@ def planning_agent(query, sessionID):
 
     # If a valid follow-up question exists, add a button
     if visible_follow_up and bot_follow_up:
-        # remove bot-format line
-        response['text'] = "\n".join(response['text'].splitlines()[:-1])
-        # remove "(visible)"
+        # remove bot-format line and any formatting instructions from the response
+        cleaned_response = []
+        for line in response['text'].splitlines():
+            if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
+                cleaned_response.append(line)
+        
+        # Remove any formatting instructions
+        response['text'] = '\n'.join(cleaned_response)
         response['text'] = response['text'].replace("(visible)", "")
         
         response["attachments"].append({
@@ -480,8 +587,6 @@ def planning_agent(query, sessionID):
                 }
             ]
         })
-        
-        
     
     print(response)
 
@@ -534,3 +639,106 @@ x_rapidapi_key = 'cfd585ecdemshc2f7759959ed435p17fa0fjsn4ba89051e09f'
 #         return response['response']
 
 #     return response
+
+# FOLLOWUP AGENT
+def followup_agent(query, sessionID):
+    query_with_rag_context = agent_tools.query_rag_context(query)
+
+    print(query_with_rag_context)
+
+    response_text = generate(
+        model = '4o-mini',
+        system = f"""
+            You are a Tufts University Advisor in the Computer Science Department.
+
+            Your role is to provide **clear, direct answers** to student follow-up questions based on previous conversation context.
+
+            When responding to follow-up questions:
+            - **Answer directly and precisely** using the provided RAG context and conversation history
+            - **Maintain continuity** with previous answers
+            - **If information is missing**, clearly state: "I don't have this specific information in my available data"
+            - **Use conversational, helpful tone** with students
+            - **Structure your answer** with bullet points, tables, or sections as appropriate
+            - Use emojis to enhance readability when appropriate
+
+            Key Guidelines for Course-Related Follow-ups:
+            - **Always mention prerequisites** for any discussed course
+            - **Never recommend courses with scheduling conflicts in the main recommendations**
+            - **Move conflicting courses to alternatives section** and clearly mark the conflicts
+            - **Calculate total credits only from non-conflicting courses** that can be taken together
+            - **Include syllabus links** whenever available
+            - **Provide detailed explanations** about course content and relevance
+            - **Include course ratings** if available
+            - **Offer alternatives** when discussing course options
+            - **Give detailed rationales** for course recommendations
+
+            Additional Response Requirements:
+            - Reference previous information in your answer
+            - Be specific and provide details when available
+            - Ensure a cohesive experience that builds on prior exchanges
+            - Always provide at least one follow-up question at the end
+            - When discussing multiple courses, use tables to compare them clearly
+            - Always check for and avoid scheduling conflicts in main recommendations
+
+            📌 **Follow-Up Formatting Rule:**  
+            - Generate follow-up questions that build naturally on the current conversation.
+            - Follow-up questions MUST be specific and actionable, such as:
+              * "Would you like to know more details about CS 160's projects?"
+              * "Would you like to see how this course compares to CS 170?"
+              * "Would you like to know what career paths this course prepares you for?"
+            
+            - Format EXACTLY as follows:
+            Follow-Up (visible): Would you like to know [specific, contextual question]?
+            Follow-Up (bot format): I want to know [same specific, contextual question].
+            
+            - Each follow-up should deepen the conversation and provide valuable information that logically extends from the current discussion.
+
+            ⚠️ Do **not** use "Would you like to" in the bot format.  
+            Ensure both versions are included for consistent follow-up generation.
+        """,
+        query = query_with_rag_context,
+        temperature=0.3,
+        lastk=20,
+        session_id=sessionID
+    )
+    
+    if isinstance(response_text, dict):
+        response_text = response_text["response"]
+
+    # Extract the generated follow-up question
+    visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
+
+    response = {
+        "text": response_text,  # Bot's full response including visible follow-up
+        "attachments": []
+    }
+
+    # If a valid follow-up question exists, add a button
+    if visible_follow_up and bot_follow_up:
+        # remove bot-format line and any formatting instructions from the response
+        cleaned_response = []
+        for line in response['text'].splitlines():
+            if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
+                cleaned_response.append(line)
+        
+        # Remove any formatting instructions
+        response['text'] = '\n'.join(cleaned_response)
+        response['text'] = response['text'].replace("(visible)", "")
+        
+        response["attachments"].append({
+            "title": "Follow-Up Question",
+            "text": f"🔍 {visible_follow_up}",
+            "actions": [
+                {
+                    "type": "button",
+                    "text": "✅ Ask This Question",
+                    "msg": bot_follow_up,  # Sends the "I want to know..." version
+                    "msg_in_chat_window": True,
+                    "msg_processing_type": "sendMessage"
+                }
+            ]
+        })
+    
+    print(response)
+
+    return response
