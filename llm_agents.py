@@ -203,38 +203,31 @@ def course_agent(query, sessionID):
     # Extract the generated follow-up question
     visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
 
-    # Clean the response text by removing follow-up formatting instructions
-    cleaned_response = []
-    for line in response_text.splitlines():
-        if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
-            cleaned_response.append(line)
-    
-    response_clean_text = '\n'.join(cleaned_response)
-    response_clean_text = response_clean_text.replace("(visible)", "")
-
-    # Prepare the basic response
     response = {
-        "text": response_clean_text,
+        "text": response_text,  # Bot's full response including visible follow-up
         "attachments": []
     }
 
-    # If a valid follow-up question exists, add button with follow-up question
+    # If a valid follow-up question exists, add a button
     if visible_follow_up and bot_follow_up:
-        response["text"] = response_clean_text + "\n\n---\n\nFollow-Up\n\nWould you like to " + visible_follow_up + "?\nI want to know " + bot_follow_up + "."
-        response["attachments"] = [
-            {
-                "text": "Would you like to know more?",
-                "actions": [
-                    {
-                        "type": "button",
-                        "text": "None",
-                        "msg": bot_follow_up,
-                        "msg_in_chat_window": True,
-                        "msg_processing_type": "sendMessage"
-                    }
-                ]
-            }
-        ]
+        # remove bot-format line
+        response['text'] = "\n".join(response['text'].splitlines()[:-1])
+        # remove "(visible)"
+        response['text'] = response['text'].replace("(visible)", "")
+        
+        response["attachments"].append({
+            "title": "Follow-Up Question",
+            "text": f"🔍 {visible_follow_up}",
+            "actions": [
+                {
+                    "type": "button",
+                    "text": "✅ Ask This Question",
+                    "msg": bot_follow_up,  # Sends the "I want to know..." version
+                    "msg_in_chat_window": True,
+                    "msg_processing_type": "sendMessage"
+                }
+            ]
+        })
     
     print(response)
     return response
@@ -326,38 +319,31 @@ def program_agent(query, sessionID):
     # Extract the generated follow-up question
     visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
 
-    # Clean the response text by removing follow-up formatting instructions
-    cleaned_response = []
-    for line in response_text.splitlines():
-        if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
-            cleaned_response.append(line)
-    
-    response_clean_text = '\n'.join(cleaned_response)
-    response_clean_text = response_clean_text.replace("(visible)", "")
-
-    # Prepare the basic response
     response = {
-        "text": response_clean_text,
+        "text": response_text,  # Bot's full response including visible follow-up
         "attachments": []
     }
 
-    # If a valid follow-up question exists, add button with follow-up question
+    # If a valid follow-up question exists, add a button
     if visible_follow_up and bot_follow_up:
-        response["text"] = response_clean_text + "\n\n---\n\nFollow-Up\n\nWould you like to " + visible_follow_up + "?\nI want to know " + bot_follow_up + "."
-        response["attachments"] = [
-            {
-                "text": "Would you like to know more?",
-                "actions": [
-                    {
-                        "type": "button",
-                        "text": "None",
-                        "msg": bot_follow_up,
-                        "msg_in_chat_window": True,
-                        "msg_processing_type": "sendMessage"
-                    }
-                ]
-            }
-        ]
+        # remove bot-format line
+        response['text'] = "\n".join(response['text'].splitlines()[:-1])
+        # remove "(visible)"
+        response['text'] = response['text'].replace("(visible)", "")
+        
+        response["attachments"].append({
+            "title": "Follow-Up Question",
+            "text": f"🔍 {visible_follow_up}",
+            "actions": [
+                {
+                    "type": "button",
+                    "text": "✅ Ask This Question",
+                    "msg": bot_follow_up,  # Sends the "I want to know..." version
+                    "msg_in_chat_window": True,
+                    "msg_processing_type": "sendMessage"
+                }
+            ]
+        })
     
     print(response)
     return response
@@ -541,28 +527,16 @@ def planning_agent(query, sessionID):
             ---
 
             📌 **Follow-Up Formatting Rule:**  
-            Always include a follow-up question block at the end, in **both formats**:
+            - The follow-up question **must** be formatted as follows, it can be related to course information or time planning or program information:
+            Follow-Up (visible): Would you like to know [specific topic]?
+            Follow-Up (bot format): I want to know [specific topic].
             
-            - Follow-up questions MUST be specific and directly related to course planning, such as:
-              * Asking about specific course details: "Would you like to know more details about CS 160?"
-              * Inquiring about prerequisites: "Would you like to know what prerequisites you need to complete first?"
-              * Requesting alternative schedules: "Would you like to see a schedule focused more on [specific interest]?"
-              * Asking about future semesters: "Would you like to plan your next semester after this one?"
-            
-            - Format EXACTLY as follows:
-            Follow-Up (visible): Would you like to [specific planning-related question]?
-            Follow-Up (bot format): I want to know [same specific planning-related question].
-            
-            - Examples of strong follow-ups:
-              "Would you like to know more details about CS 116's coursework and projects?"
-              "Would you like to see what your schedule might look like if focused on AI instead of cybersecurity?"
-              "Would you like to know about summer courses that complement this plan?"
+            - The **visible follow-up** should be conversational for readability.  
+            - The **bot format** should be directly actionable and understandable for automated queries.  
 
-            ✅ The visible version should be natural and friendly.  
-            ✅ The bot-format version should be structured for backend processing.
-
-            ⚠️ **DO NOT use "Would you like to"** in the **bot-format line**.  
-            ⚠️ **Both versions must appear** in the response, and clearly labeled.
+            ⚠️ **Important:**  
+            - **DO NOT** use "Would you like to" in the bot-processing format.  
+            - Ensure both formats appear in the response for easy extraction.
                 
                 """,
         query = query_with_rag_context,
@@ -577,40 +551,34 @@ def planning_agent(query, sessionID):
     # Extract the generated follow-up question
     visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
 
-    # Clean the response text by removing follow-up formatting instructions
-    cleaned_response = []
-    for line in response_text.splitlines():
-        if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
-            cleaned_response.append(line)
-    
-    response_clean_text = '\n'.join(cleaned_response)
-    response_clean_text = response_clean_text.replace("(visible)", "")
-
-    # Prepare the basic response
     response = {
-        "text": response_clean_text,
+        "text": response_text,  # Bot's full response including visible follow-up
         "attachments": []
     }
 
-    # If a valid follow-up question exists, add button with follow-up question
+    # If a valid follow-up question exists, add a button
     if visible_follow_up and bot_follow_up:
-        response["text"] = response_clean_text + "\n\n---\n\nFollow-Up\n\nWould you like to " + visible_follow_up + "?\nI want to know " + bot_follow_up + "."
-        response["attachments"] = [
-            {
-                "text": "Would you like to know more?",
-                "actions": [
-                    {
-                        "type": "button",
-                        "text": "None",
-                        "msg": bot_follow_up,
-                        "msg_in_chat_window": True,
-                        "msg_processing_type": "sendMessage"
-                    }
-                ]
-            }
-        ]
+        # remove bot-format line
+        response['text'] = "\n".join(response['text'].splitlines()[:-1])
+        # remove "(visible)"
+        response['text'] = response['text'].replace("(visible)", "")
+        
+        response["attachments"].append({
+            "title": "Follow-Up Question",
+            "text": f"🔍 {visible_follow_up}",
+            "actions": [
+                {
+                    "type": "button",
+                    "text": "✅ Ask This Question",
+                    "msg": bot_follow_up,  # Sends the "I want to know..." version
+                    "msg_in_chat_window": True,
+                    "msg_processing_type": "sendMessage"
+                }
+            ]
+        })
     
     print(response)
+
     return response
 
 
@@ -729,38 +697,31 @@ def followup_agent(query, sessionID):
     # Extract the generated follow-up question
     visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
 
-    # Clean the response text by removing follow-up formatting instructions
-    cleaned_response = []
-    for line in response_text.splitlines():
-        if not any(x in line.lower() for x in ['follow-up (bot format)', 'follow-up (visible)', '⚠️ do not use', 'ensure both versions']):
-            cleaned_response.append(line)
-    
-    response_clean_text = '\n'.join(cleaned_response)
-    response_clean_text = response_clean_text.replace("(visible)", "")
-
-    # Prepare the basic response
     response = {
-        "text": response_clean_text,
+        "text": response_text,  # Bot's full response including visible follow-up
         "attachments": []
     }
 
-    # If a valid follow-up question exists, add button with follow-up question
+    # If a valid follow-up question exists, add a button
     if visible_follow_up and bot_follow_up:
-        response["text"] = response_clean_text + "\n\n---\n\nFollow-Up\n\nWould you like to " + visible_follow_up + "?\nI want to know " + bot_follow_up + "."
-        response["attachments"] = [
-            {
-                "text": "Would you like to know more?",
-                "actions": [
-                    {
-                        "type": "button",
-                        "text": "None",
-                        "msg": bot_follow_up,
-                        "msg_in_chat_window": True,
-                        "msg_processing_type": "sendMessage"
-                    }
-                ]
-            }
-        ]
+        # remove bot-format line
+        response['text'] = "\n".join(response['text'].splitlines()[:-1])
+        # remove "(visible)"
+        response['text'] = response['text'].replace("(visible)", "")
+        
+        response["attachments"].append({
+            "title": "Follow-Up Question",
+            "text": f"🔍 {visible_follow_up}",
+            "actions": [
+                {
+                    "type": "button",
+                    "text": "✅ Ask This Question",
+                    "msg": bot_follow_up,  # Sends the "I want to know..." version
+                    "msg_in_chat_window": True,
+                    "msg_processing_type": "sendMessage"
+                }
+            ]
+        })
     
     print(response)
     return response
