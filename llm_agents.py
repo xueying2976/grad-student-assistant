@@ -168,7 +168,6 @@ def course_agent(query, sessionID):
 
             ⚠️ Do **not** use "Would you like to" in the bot format.  
             Ensure both versions are included for consistent follow-up generation. 
-
         """,
         query = query_with_rag_context,
         temperature=0.3,
@@ -217,13 +216,17 @@ def extract_follow_up_question(response_text):
     """
     Extracts both the visible and bot-format follow-up question from the response.
     """
-    match = re.search(r'Follow-Up \(visible\): (.+?)\n.*?Follow-Up \(bot format\): (.+)', response_text, re.DOTALL)
+    response_text_no_stars = response_text.replace("**", "")
+    response_text_no_stars = response_text_no_stars.replace(" (visible)", "")
+    match = re.search(r'Follow-Up: (.+?)\n.*?Follow-Up \(bot format\): (.+)', response_text_no_stars, re.DOTALL)
 
     if match:
+        print("matched")
         visible_question = match.group(1).strip()
         bot_question = match.group(2).strip()
         return visible_question, bot_question
     else:
+        print("no match")
         return None, None  # No follow-up found
 
 # PROGRAM INFORMATION AGENT
@@ -519,60 +522,10 @@ def planning_agent(query, sessionID):
                 }
             ]
         })
-        
-        
     
     print(response)
 
     return response
-
-
-locationId = 102380872
-x_rapidapi_host = 'linkedin-data-api.p.rapidapi.com'
-x_rapidapi_key = 'cfd585ecdemshc2f7759959ed435p17fa0fjsn4ba89051e09f'
-
-# def job_agent(query, sessionID):
-#     skill = generate(
-#         model="4o-mini",
-#         system='''You'll be provided with a class name and a description of the class.
-#         Repsond with a single word or phrase that is the key skill or concept that the class teaches.
-#         ''',
-#         query=query,
-#         temperature=0,
-#         lastk=1024,
-#         session_id=sessionID,
-#     )
-#     if isinstance(skill, dict):
-#         skill = skill['response']
-
-#     print(f'Skill identified: {skill}')
-    
-#     encoded_skill = urllib.parse.quote(skill)
-#     linkedin_url = f"https://linkedin-data-api.p.rapidapi.com/search-jobs-v2?locationId={locationId}&keywords={encoded_skill}&datePosted=anyTime&sort=mostRelevant"
-#     jobs = requests.get(linkedin_url, headers={
-#         'x-rapidapi-key': x_rapidapi_key,
-#         'x-rapidapi-host': x_rapidapi_host,
-#     })
-
-#     response = generate(
-#         model="4o-mini",
-#         system='''You'll be provided with a list of jobs that are related to the skill or concept that you provided.
-#         Show the list of jobs in the most readable way possible and at the same time be specific about the jobs, 
-#         and summarize the jobs in a single sentence.
-#         ''',
-#         query=f'''Show the list of jobs in the most readable way possible, and summarize the jobs in a single sentence.
-        
-#         {jobs.text}
-#         ''',
-#         temperature=0,
-#         lastk=1024,
-#         session_id=sessionID,
-#     )
-    
-#     if isinstance(response, dict):
-#         return response['response']
-
-#     return response
 
 # FOLLOWUP AGENT
 def followup_agent(query, sessionID):

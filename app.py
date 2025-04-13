@@ -8,9 +8,9 @@ import env_variables
 from random import randint
 import threading
 
+session_map = {}
 # LLM - User Message:
 # State what tools are available, be candid to any user prompt.
-
 app = Flask(__name__)
 
 @app.route('/')
@@ -23,7 +23,11 @@ def main():
     print(f"Data: {data}")
 
     # Extract relevant information
-    user = data.get("user_id", 'TestUserName') + '-' + env_variables.version
+    session = data.get("user_id", 'TestUserName')
+    if session not in session_map:
+        session_map[session] = 'lxy' + str(len(session_map))
+    user = session_map[session] + '-' + env_variables.version
+    print("Current user: ", user)
     message = data.get("text", "")
 
     # Ignore bot messages
@@ -47,8 +51,7 @@ def main():
                     - 🔢 Desired number of credits
                     - 🎯 Specific courses you want to take
                     - 📝 Other notes)
-                        """,
-                
+                    """,
             }
 
     if category == 'WELCOME':
@@ -86,18 +89,12 @@ def main():
             "text": f"""
                     I can help you with : (version: {env_variables.version})
                     - **Course Information(25 fall semester courses)**
-                    ✅ "Can you provide the grading formula for CS160?"
-                    
-                    
+                    ✅ "Can you provide the grading formula for CS160?"    
                     
                     - **Course Planning(25 spring semester courses)**
                     ✅ "If I take both COMP 150-SEN and CS 15, can you give me the March schedule for both classes?"
                     ✅ "I'm interested in AI—can you recommend three courses?"
                     ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
-                    
-                    
-                    
-                    
                     """,
             "attachments": [ 
                 agent_tools.capabilites_buttons()
@@ -107,10 +104,7 @@ def main():
     if category == 'INVALID': # need optimize 
         response = {
             "text": f""" {prompt}
-            I am sorry I can only help you with questions regarding the 🐘 CS Department.
-            
-             
-            
+            I am sorry I can only help you with questions regarding the 🐘 CS Department.   
             """
         }
         
