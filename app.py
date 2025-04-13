@@ -62,7 +62,7 @@ def main():
                 
                 - **Course Information**
                 ✅ "Can you provide the grading formula for CS160?"
-                ✅ "What are the prerequisites for COMP 150-SEN?"
+                ✅ "What are the prerequisites for CS160?"
                 
                 - **Course Scheduling**
                 INTRODUCTION(If you'd like me to help you plan your next semester, please provide the following:

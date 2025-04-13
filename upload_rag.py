@@ -11,7 +11,7 @@ def upload_files(file_path):
     print(response)
 
 def upload_all():
-    for i in range(3):
+    for i in range(5):
         file = f'RAGFiles/fall-{i+1}.pdf'
         upload_files(file)
         print("Uploaded file: " + file)

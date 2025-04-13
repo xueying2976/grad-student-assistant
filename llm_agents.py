@@ -102,7 +102,7 @@ def course_agent(query, sessionID):
             - Grading Breakdown  
             - Assignments & Structure  
             - Course Ratings & Reviews (if available)
-            - Syllabus Link (MUST include if available)
+            - Syllabus Link (MUST include if available, if not, MUST do not include)
             - Follow-Up
 
             When discussing the course, also consider:
@@ -142,8 +142,9 @@ def course_agent(query, sessionID):
         > - Midterm & final exams  
         > - Class participation
 
-        🌟 **Course Ratings & Reviews:**
-        > Average rating: 4.2/5.0
+        🌟 **Course/Professor Ratings & Reviews:**
+        > Course Average rating: 4.2/5.0
+        > Professor Average rating: 4.5/5.0
         > Student feedback highlights challenging but rewarding content
 
         📎 **Syllabus Link:**  
