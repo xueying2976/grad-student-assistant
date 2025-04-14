@@ -1,6 +1,30 @@
 # Tools to be used by Agents
 import requests
 import re
+import csv
+
+def load_database():
+    """Load the CSV database into a list of dictionaries."""
+    try:
+        with open('/user_database.csv', mode="r", newline="", encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+            return list(reader)  # Convert to list for easy searching
+    except FileNotFoundError:
+        return []  # Return empty if file does not exist
+
+def save_to_database(username, first_name, last_name, education_level):
+    """Append a new user to the CSV database."""
+    with open('/user_database.csv', mode="a", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow([username, first_name, last_name, education_level])
+    print(f"User {username} added successfully!")
+
+def find__user(username):
+    users = load_database()
+    for user in users:
+        if user["username"] == username:
+            return user
+    return None
 
 def category_prompt_re_match(category_prompt: str):
     print(f'Category/Prompt: {category_prompt}')
@@ -9,50 +33,37 @@ def category_prompt_re_match(category_prompt: str):
 
     return parts[0], parts[1][:-1]
 
-# Return a list of capabilities buttons in JSON
-def capabilites_buttons():
-    capabilities =  {
-        "title": "Quick Actions",
-        "actions": [
-            {
-                "type": "button",
-                "text": "📚 Course\nInfo",
-                "msg": "I would like help with course information",
-                "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage",
-            },
-            {
-                "type": "button",
-                "text": "🎓 Program\nInfo",
-                "msg": "I would like help with my program",
-                "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage"
-            },
-            {
-                "type": "button",
-                "text": "🗓️ Course\nPlanning",
-                "msg": "I would like help with my courses planning",
-                "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage"
-            },
-            {
-                "type": "button",
-                "text": "📞 Contact\nDepartment",
-                "msg": "I would like help with cs department contact information",
-                "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage"
-            },
-            {
-                "type": "button",
-                "text": "👩🏻‍💻 Job\nRecommendation",
-                "msg": "I would like help with job recommendations",
-                "msg_in_chat_window": True,
-                "msg_processing_type": "sendMessage"
-            }
-        ]
-    }
+def get_professor_info(data):
+    professor_dict = {}
+
+    # Find the professor data in the JSON blob
+    # (we don’t know the exact key, so search for it)
+    for key, value in data.items():
+        if isinstance(value, dict) and value.get("__typename") == "Teacher":
+            professor_dict['name'] = value.get("firstName", "") + " " + value.get("lastName", "")
+            professor_dict['dept'] = value.get("department")
+            professor_dict['avg_rating'] = value.get("avgRating")
+            professor_dict['avg_difficulty'] = value.get("avgDifficulty")
+            professor_dict['would_take_again'] = value.get("wouldTakeAgainPercent")
+            professor_dict['num_ratings'] = value.get("numRatings")
+
+            break
+
+    # Find the professor ratings in the JSON blob
+    # (we don’t know the exact key, so search for it)
+    professor_ratings = []
+    for key, value in data.items():
+        if isinstance(value, dict) and value.get("__typename") == "Rating":
+            professor_ratings.append({
+                'course': value.get("class"),
+                'tags': value.get("ratingTags"),
+                'comment': value.get("comment"),
+                'difficulty': value.get("difficultyRating")
+            })
     
-    return capabilities
+    professor_dict['ratings'] = professor_ratings
+
+    return professor_dict
 
 def welcome_buttons():
     welcome_example =  {
@@ -83,66 +94,6 @@ def welcome_buttons():
     }
     
     return welcome_example
-
-
-
-# Return a list of contact buttons in JSON
-def contact_buttons(query):
-    contact_info = {
-        "title": "Need More Help?",
-        "actions": [
-            {
-                "type": "button",
-                "text": "📞 Phone",
-                "msg": "What is the CS Department phone number?",
-                "msg_in_chat_window": ('phone' not in query.lower()),
-                "msg_processing_type": "sendMessage",
-            },
-            {
-                "type": "button",
-                "text": "📧 Email",
-                "msg": "What is the CS Department email address?",
-                "msg_in_chat_window": ('email' not in query.lower()),
-                "msg_processing_type": "sendMessage"
-            },
-            {
-                "type": "button",
-                "text": "📍 Address",
-                "msg": "What is the CS Department address?",
-                "msg_in_chat_window": ('address' not in query.lower()),
-                "msg_processing_type": "sendMessage"
-            },
-            {
-                "type": "button",
-                "text": "👤 Message\nDepartment",
-                "msg": "Send a message to the CS department",
-                "msg_in_chat_window": ('message' not in query.lowe()),
-                "msg_processing_type": "sendMessage"
-            }
-        ]
-    }
-
-    return contact_info
-
-# Google Web Search
-def web_search(query):
-    from env_variables import googleApiKey, googleSearchApiUrl, googleSearchId
-
-    params = {
-        "key": googleApiKey,
-        "cx": googleSearchId,
-        "q": query,
-        "num": 5
-    }
-    
-    google_search = requests.get(googleSearchApiUrl, params=params)
-    search_results = []
-    if google_search.status_code == 200:
-        search_results = [(item["title"], item["link"], item["snippet"]) for item in google_search.json().get("items", [])]
-    else:
-        print("Error:", google_search.status_code, query)
-
-    return search_results
 
 # RAG Files Search
 def rag_search(query):
@@ -194,10 +145,62 @@ def query_rag_context(query):
     
     return query_with_rag_context
 
-# Send Email
-# Email someone in the cs department, faculty or department
-def send_email(query, email_address):
-    return None
+# Message User
+# Send message in rocketchat to another user (advisor, partnet, cs department)
+def post_message(message, to_user, from_user):
+    from env_variables import rc_url, x_auth_token, x_user_id
+
+    print(f"Posting message {message}, from user: {from_user}, to user: {to_user}")
+
+    post_url = f'{rc_url}/chat.postMessage'
+    # Headers with authentication tokens
+    headers = {
+        "Content-Type": "application/json",
+        "X-Auth-Token": x_auth_token,
+        "X-User-Id": x_user_id
+    }
+    
+    # context = llm_agents.detailed_message_agent(message, sessionId, from_user)
+
+    # Payload (data to be sent)
+    payload = {
+        "channel": f"@{to_user}",
+        "text": f"@{from_user} sent the following message:\n{message}",
+        # "text": f"@{from_user}:\n>{message}\nContext:\n{context}",
+        "attachments": [
+            {   
+                "title": "Want to reply?",
+                "actions": [
+                    {
+                        "type": "button",
+                        "text": "✅ Yes",
+                        "msg": f"Message to @{from_user}: ",
+                        "msg_in_chat_window": True,
+                        "msg_processing_type": "respondWithMessage"
+                    },
+                    {
+                        "type": "button",
+                        "text": "❌ No",
+                        "msg": "Not right now, Thank you! :)",
+                        "msg_in_chat_window": True,
+                        "msg_processing_type": "sendMessage"
+                    }
+                ]
+            }
+        ]
+    }
+
+    # Sending the POST request
+    response = requests.post(post_url, json=payload, headers=headers)
+
+    # Print response status and content
+    print(f'Status: {response.status_code}')
+    print(response.json())
+
+    if response.status_code == 200:
+        return "Message sent successfully!😊"
+
+    return "An error occurred while sending the message..."
 
 # Message User
 # Send message in rocketchat to another user (advisor, partnet, cs department)
@@ -223,3 +226,29 @@ def message_user(message, user_name):
     # Print response status and content
     print(response.status_code)
     print(response.json())
+
+# Chat History
+def get_last_k_messages(channel_id, k=1):
+    from env_variables import rc_url, x_auth_token, x_user_id
+    url = f"{rc_url}/im.history?roomId={channel_id}&count={k}"
+
+    # Headers with authentication tokens
+    headers = {
+        "Content-Type": "application/json",
+        "X-Auth-Token": x_auth_token,
+        "X-User-Id": x_user_id
+    }
+
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        messages = response.json().get("messages", []) # message to send, bot message, user request
+        message_list = [message["msg"] for message in messages]
+        
+        # Ensure the list is of length k, filling with empty strings if necessary
+        while len(message_list) < k:
+            message_list.append("")
+        
+        return message_list[:k]
+    
+    return [""] * k

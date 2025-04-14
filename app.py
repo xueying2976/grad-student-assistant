@@ -1,4 +1,3 @@
-import requests
 from flask import Flask, request, jsonify, render_template
 from datetime import datetime
 import upload_rag
@@ -7,6 +6,7 @@ import agent_tools
 import env_variables
 from random import randint
 import threading
+import re
 
 session_map = {}
 # LLM - User Message:
@@ -29,10 +29,129 @@ def main():
     user = session_map[session] + '-' + env_variables.version
     print("Current user: ", user)
     message = data.get("text", "")
+    username = data.get("user_name", "")
 
     # Ignore bot messages
     if data.get("bot") or not message:
         return jsonify({"status": "ignored"})
+    
+    # Get User message
+    # Check if message is allowed or illegal, return false until get allowed request
+    if '@' in message and 'sent the following message:' in message:
+        print("Getting Message Context")
+        match = re.match(r'@(.+) sent the following message:\n(.+)', message)
+        from_user = match.group(1)
+        message = match.group(2)
+        print(f"from: {from_user}, message:{message}")
+        
+        context = llm_agents.detailed_message_agent(message, user, from_user) # fix
+        
+        response = {
+            "text": f"@{from_user}:\n>{message}\nContext:\n{context}"
+        }
+
+        return jsonify(response)
+
+    if 'Not right now, Thank you!' in message:
+        response = {
+            "text": "Of course! Let me know if need more help 🐘",
+            "attachments": [
+                {
+                    "title": "Need help?",
+                    "actions": [
+                        {
+                            "type": "button",
+                            "text": "🔍 Menu",
+                            "msg": "Show me what you can do",
+                            "msg_in_chat_window": True,
+                            "msg_processing_type": "sendMessage"
+                        }
+                    ]
+                }
+            ]
+        }
+
+        return jsonify(response)
+    
+    if 'Message to CS Department:' in message:
+        message = message.replace('Message to CS Department:', '').strip()
+
+        # context = llm_agents.detailed_message_agent(message, user, from_user)
+
+        status = agent_tools.post_message(message, env_variables.cs_dept_username, username) #add context
+
+        # return jsonify({"text": status})
+        return jsonify(
+            {
+                "text": status,
+                "attachments": [ 
+                    {
+                        "title": "More help?",
+                        "actions": [
+                            {
+                                "type": "button",
+                                "text": "🔍 Menu",
+                                "msg": "Show me what you can do",
+                                "msg_in_chat_window": True,
+                                "msg_processing_type": "sendMessage"
+                            }
+                        ]
+                    }
+                ]
+            }
+        )
+    
+    if 'Message to CS Advisor:' in message:
+        message = message.replace('Message to CS Advisor:', '').strip()
+        status = agent_tools.post_message(message, env_variables.cs_adv_username, username)
+
+        return jsonify(
+            {
+                "text": status,
+                "attachments": [ 
+                    {
+                        "title": "More help?",
+                        "actions": [
+                            {
+                                "type": "button",
+                                "text": "🔍 Menu",
+                                "msg": "Show me what you can do",
+                                "msg_in_chat_window": True,
+                                "msg_processing_type": "sendMessage"
+                            }
+                        ]
+                    }
+                ]
+            }
+        )
+    
+    if 'Message to @' in message:
+        match = re.match(r'Message to @(.+):(.+)', message)
+        
+        to_user = match.group(1).strip()
+        message = match.group(2).strip()
+
+        status = agent_tools.post_message(message, to_user, username)
+
+        return jsonify(
+            {
+                "text": status,
+                "attachments": [ 
+                    {
+                        "title": "More help?",
+                        "actions": [
+                            {
+                                "type": "button",
+                                "text": "🔍 Menu",
+                                "msg": "Show me what you can do",
+                                "msg_in_chat_window": True,
+                                "msg_processing_type": "sendMessage"
+                            }
+                        ]
+                    }
+                ]
+            }
+        )
 
     # Receive and classify user's query
     category, prompt = llm_agents.router_agent(message, user)
@@ -83,30 +202,6 @@ def main():
 
     if category == 'COURSE':
         response = llm_agents.course_agent(prompt, user)
-
-    if category == 'CAPABILITIES':
-        response = {
-            "text": f"""
-                    I can help you with : (version: {env_variables.version})
-                    - **Course Information(25 fall semester courses)**
-                    ✅ "Can you provide the grading formula for CS160?"    
-                    
-                    - **Course Planning(25 spring semester courses)**
-                    ✅ "If I take both COMP 150-SEN and CS 15, can you give me the March schedule for both classes?"
-                    ✅ "I'm interested in AI—can you recommend three courses?"
-                    ✅ "I want to take 9 credits but only attend classes on Tuesdays and Thursdays. Which real courses would you suggest?"
-                    """,
-            "attachments": [ 
-                agent_tools.capabilites_buttons()
-            ]
-        }
-
-    if category == 'INVALID': # need optimize 
-        response = {
-            "text": f""" {prompt}
-            I am sorry I can only help you with questions regarding the 🐘 CS Department.   
-            """
-        }
         
     if category == 'CLARIFY':
         response = {
@@ -118,6 +213,88 @@ def main():
     
     if category == "FOLLOWUP":
         response = llm_agents.followup_agent(prompt, user)
+
+    if category == 'RATING':
+        response = {
+            "text": llm_agents.professor_rating_agent(prompt, user),
+            "attachments": [
+                {
+                    "actions": [
+                        {
+                            "type": "button",
+                            "text": "👨‍🏫 Search Professor",
+                            "msg": "Search for rating of professor: ",
+                            "msg_in_chat_window": True,
+                            "msg_processing_type": "respondWithMessage"
+                        },
+                        {
+                            "type": "button",
+                            "text": "🔍 Menu",
+                            "msg": "Show me what you can do",
+                            "msg_in_chat_window": True,
+                            "msg_processing_type": "sendMessage"
+                        }
+                    ]
+                }
+            ]
+        }
+
+    if category == 'MESSAGE DPT':
+        response = {
+            "text": "Would you like to send a Message?",
+            "attachments": [
+                {
+                    "actions": [
+                        {
+                            "type": "button",
+                            "text": "✅ Yes",
+                            "msg": "Message to CS Department: ",
+                            "msg_in_chat_window": True,
+                            "msg_processing_type": "respondWithMessage"
+                        },
+                        {
+                            "type": "button",
+                            "text": "❌ No",
+                            "msg": "Not right now, Thank you! :)",
+                            "msg_in_chat_window": True,
+                            "msg_processing_type": "sendMessage"
+                        }
+                    ]
+                }
+            ]
+        }
+    
+    if category == 'MESSAGE ADV':
+        response = {
+            "text": "Would you like to send a Message?",
+            "attachments": [
+                {
+                    "actions": [
+                        {
+                            "type": "button",
+                            "text": "✅ Yes",
+                            "msg": "Message to CS Advisor: ",
+                            "msg_in_chat_window": True,
+                            "msg_processing_type": "respondWithMessage"
+                        },
+                        {
+                            "type": "button",
+                            "text": "❌ No",
+                            "msg": "Not right now, Thank you! :)",
+                            "msg_in_chat_window": True,
+                            "msg_processing_type": "sendMessage"
+                        }
+                    ]
+                }
+            ]
+        }
+
+    if category == 'INVALID': # need optimize 
+        response = {
+            "text": f""" {prompt}
+            I am sorry I can only help you with questions regarding the 🐘 CS Department.   
+            """
+        }
     
     return jsonify(response)
     

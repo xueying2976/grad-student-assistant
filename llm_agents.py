@@ -1,12 +1,11 @@
 import requests
 import urllib.parse
-from flask import Flask, request, jsonify
-from llmproxy import generate, pdf_upload
-from datetime import datetime
+from llmproxy import generate
 import agent_tools
 import re
+from env_variables import ragSessionId, cs_dept_username, cs_adv_username
 
-# ROUTER AGENTa
+# ROUTER AGENT
 # Classify user message request and route to correct response
 def router_agent(query, sessionID):
     """
@@ -39,6 +38,9 @@ def router_agent(query, sessionID):
       However, I guess you might be asking: <your best guess at their intended question. Then, attempt to answer the guessed question>.
     5. INVALID - the user asks questions outside computer science, cs department contact information and the available tools.
     6. FOLLOWUP - the user is asking a follow-up question related to a previous response. This category should be triggered when the user's message clearly refers to previous information or when they ask for more details about something mentioned in the previous responses. Analyze the context of the conversation to determine the best way to answer the follow-up question.
+    7. RATING - the user explicitly requests rating about a professor's teaching at Tufts University.
+    8. MESSAGE DPT - the user explicitly states that wants to send a message to the CS Department.
+    9. MESSAGE ADV - the user explicitly states that wants to send a message to a CS Advisor.
 
     ## Response Instructions ##
     Always produce a prompt and category for the response.
@@ -84,6 +86,7 @@ def course_agent(query, sessionID):
             - ⚠️ **DO NOT make up any information.** If the requested information is not in the RAG source, clearly state:
             - MUST check if it has syllabus link (the link is in below ,if has must be shown in the response!!!!)
             `"I do not have this information in my available data."`
+            - ⚠️ **NEVER make up or fabricate** course details, professor information, ratings, or any other data not found in the RAG sources.
             
             -📘 If the user asks about a specific course (e.g. "CS160", "COMP 131"), try to **locate the RAG context from the course's official syllabus page**. If available, extract:
 
@@ -91,7 +94,7 @@ def course_agent(query, sessionID):
             - 📝 **Assignments or Projects** (e.g. weekly problem sets, group projects)
             - 🕐 **Class Times & Instructors** (from different sections if available)
             - 💡 **Prerequisites or recommended background** - ALWAYS clearly state prerequisites for any course
-            - 🌟 **Course Ratings & Reviews** (if available)
+            - 🌟 **Course and Professor Ratings & Reviews** (if available) - Include specific ratings and student feedback
             - 🔗 **Official Syllabus Link** (ALWAYS include if available)
 
             Respond using **structured sections** with clear headings and emojis:
@@ -101,7 +104,7 @@ def course_agent(query, sessionID):
             - Prerequisites (MUST be included and clearly stated)
             - Grading Breakdown  
             - Assignments & Structure  
-            - Course Ratings & Reviews (if available)
+            - Course/Professor Ratings & Reviews (if available, be specific about ratings and feedback)
             - Syllabus Link (MUST include if available, if not, MUST do not include)
             - Follow-Up
 
@@ -110,6 +113,7 @@ def course_agent(query, sessionID):
             - The relevance of this course to user's stated interests or needs
             - Potential conflicts with other mentioned courses
             - Detailed rationale for why this course might be valuable
+            - Professor teaching style and reputation based on available ratings (DO NOT invent if not available)
 
         📎 Example format:
 
@@ -146,6 +150,7 @@ def course_agent(query, sessionID):
         > Course Average rating: 4.2/5.0
         > Professor Average rating: 4.5/5.0
         > Student feedback highlights challenging but rewarding content
+        > Students note Professor Sinapov's clear explanations and helpful office hours
 
         📎 **Syllabus Link:**  
         🔗 [CS131 Syllabus](https://www.cs.tufts.edu/comp/131/)
@@ -230,132 +235,6 @@ def extract_follow_up_question(response_text):
         print("no match")
         return None, None  # No follow-up found
 
-# PROGRAM INFORMATION AGENT
-def program_agent(query, sessionID):
-    query_with_rag_context = agent_tools.query_rag_context(query)
-
-    print(query_with_rag_context)
-
-    response_text = generate(
-        model = '4o-mini',
-        system = f"""
-        You are a Tufts University Advisor in the Computer Science Department.
-
-        Your role is to provide **clear, structured, and informative** answers to students' program-related questions.
-
-        When responding:
-        - **Answer the question directly** using only the provided **retrieval-augmented generation (RAG) data**.
-        - **DO NOT** make up any information. If the requested information is not in the RAG source, explicitly state:  
-        `"I do not have this information in my available data."`
-        - **Use bullet points, tables, and formatting** to enhance readability.
-        - **If the user's question is unclear**, ask for clarification.
-        - **ALWAYS provide at least one follow-up question** to encourage further discussion.
-        - Use appropriate emojis in your response to enhance readability and make the schedule visually engaging.
-
-        📌 **Follow-Up Formatting Rule:**  
-        - The follow-up question **must** be formatted as follows, it can be related to course information or time planning  or program information,ensuring the topic is specific enough to provide a direct answer. :
-        Follow-Up (visible): Would you like to know [specific topic]?
-        Follow-Up (bot format): I want to know [specific topic].
-        
-        - The **visible follow-up** should be conversational for readability.  
-        - The **bot format** should be directly actionable and understandable for automated queries.  
-
-        ⚠️ **Important:**  
-        - **DO NOT** use "Would you like to" in the bot-processing format.  
-        - Ensure both formats appear in the response for easy extraction.  
-
-        """,
-        query = query_with_rag_context,
-        temperature=0.3,
-        lastk=20,
-        session_id=sessionID
-    )
-    if isinstance(response_text, dict):
-        response_text = response_text["response"]
-
-    # Extract the generated follow-up question
-    visible_follow_up, bot_follow_up = extract_follow_up_question(response_text)
-
-    response = {
-        "text": response_text,  # Bot's full response including visible follow-up
-        "attachments": []
-    }
-
-    # If a valid follow-up question exists, add a button
-    if visible_follow_up and bot_follow_up:
-        # remove bot-format line
-        response['text'] = "\n".join(response['text'].splitlines()[:-1])
-        # remove "(visible)"
-        response['text'] = response['text'].replace("(visible)", "")
-        
-        response["attachments"].append({
-            "title": "Follow-Up Question",
-            "text": f"🔍 {visible_follow_up}",
-            "actions": [
-                {
-                    "type": "button",
-                    "text": "✅ Ask This Question",
-                    "msg": bot_follow_up,  # Sends the "I want to know..." version
-                    "msg_in_chat_window": True,
-                    "msg_processing_type": "sendMessage"
-                }
-            ]
-        })
-    
-    print(response)
-
-    return response
-
-# CONTACT INFORMATION AGENT
-def contact_agent(query, sessionID):
-    search_results = agent_tools.web_search(query)
-    print(search_results)
-
-    response = generate(
-        model = "4o-mini",
-        system = f"""
-            You are a Tufts University Advisor in the Computer Science Department.
-            Your job is to make a concise and clear response to the user prompt given the provided context.
-            """,
-        query = f"""
-                User prompt: 
-                {query}
-
-                Context:
-                {str(search_results)}
-                """,
-        temperature=0.3,
-        lastk=20,
-        session_id=sessionID,
-    )
-
-    print(f'Contact Response: {response}')
-
-    return response['response']
-
-
-
-def process_bot_message(user_message, user_name):
-    """
-    Handles bot commands like "send_to_advisor" and sends messages accordingly.
-    """
-    if user_message.startswith("send_to_advisor:"):
-        planning_details = user_message.replace("send_to_advisor:", "").strip()
-
-        # Define the advisor's username
-        advisor_username = "cs_advisor"  # Replace with the actual username
-
-        # Send the message using message_user function
-        message_user(f"📌 Student Course Planning Request:\n\n{planning_details}", advisor_username)
-
-        return {
-            "text": "✅ Your course planning has been sent to your advisor!",
-            "msg_in_chat_window": True
-        }
-
-    return None
-
-
 def planning_agent(query, sessionID):
     query_with_rag_context = agent_tools.query_rag_context(query)
 
@@ -377,6 +256,7 @@ def planning_agent(query, sessionID):
             - **Only use the provided retrieval-augmented generation (RAG) data.**
             - **DO NOT make up any information.** If the requested data is missing, say:  
             `"I do not have this information in my available data."`
+            - **NEVER invent or fabricate** course details, professor information, ratings, or any other data not found in the RAG sources.
             - Ask for clarification if needed.
             - **ALWAYS provide at least one follow-up question** to encourage continued planning.
             - Use **markdown headers**, **tables**, and **emojis** to enhance structure and readability.
@@ -412,6 +292,7 @@ def planning_agent(query, sessionID):
             - ⚠️ **NEVER include courses with scheduling conflicts in this main recommendation table**
             - ⚠️ **ALWAYS include prerequisites** for each recommended course
             - ⚠️ List course ratings when available (e.g., "4.3/5")
+            - ⚠️ Include professor ratings and student feedback when available
             - Avoid early classes or unwanted days if the student indicated so
             - Reference real Tufts CS course names & times when available
             - Only include courses that can actually be taken together in the same semester
@@ -425,6 +306,7 @@ def planning_agent(query, sessionID):
             - How they compare to the main recommendations
             - Any advantages/disadvantages they might have
             - ⚠️ **Clearly mark any scheduling conflicts** with other recommended courses
+            - Include professor ratings and reviews if available (DO NOT invent if not available)
 
             ---
 
@@ -435,6 +317,7 @@ def planning_agent(query, sessionID):
             - ✅ Days of Week used  
             - ✅ Whether early classes were avoided (if applicable)
             - ✅ Prerequisites that need to be satisfied
+            - ✅ Average course/professor rating of recommendations (if available)
 
             ---
 
@@ -445,6 +328,8 @@ def planning_agent(query, sessionID):
             - The rationale behind course prioritization
             - How prerequisites are satisfied or need to be addressed
             - Any trade-offs made in the recommendations
+            - Professor reputation and teaching style considerations
+            - Why these professors might be a good fit based on student feedback and ratings
 
             ---
 
@@ -452,6 +337,7 @@ def planning_agent(query, sessionID):
             For each recommended course, include:
             - 🔗 Syllabus link (if available)
             - 📊 Any additional resources that might help the student
+            - 🌟 Specific professor feedback or notable strengths (based only on available data)
 
             ---
 
@@ -470,6 +356,7 @@ def planning_agent(query, sessionID):
             - If student input is missing, say so politely and provide best-effort recommendations
             - **Double-check that there are NO scheduling conflicts between recommended courses**
             - **Ensure Total Credits reflects ONLY the sum of credits from courses that can actually be taken together**
+            - **DO NOT make up information** that is not provided in the RAG data
 
             ---
 
@@ -544,6 +431,8 @@ def followup_agent(query, sessionID):
             When responding to follow-up questions:
             - **Answer directly and precisely** using the provided RAG context and conversation history
             - **Maintain continuity** with previous answers
+            - **DO NOT make up any information** that is not in the RAG data
+            - **NEVER invent or fabricate** course details, professor information, ratings, or any other data not found in the RAG sources
             - **If information is missing**, clearly state: "I don't have this specific information in my available data"
             - **Use conversational, helpful tone** with students
             - **Structure your answer** with bullet points, tables, or sections as appropriate
@@ -556,7 +445,8 @@ def followup_agent(query, sessionID):
             - **Calculate total credits only from non-conflicting courses** that can be taken together
             - **Include syllabus links** whenever available
             - **Provide detailed explanations** about course content and relevance
-            - **Include course ratings** if available
+            - **Include course and professor ratings** if available - be specific about ratings and student feedback
+            - **Discuss professor teaching style and reputation** based only on available data
             - **Offer alternatives** when discussing course options
             - **Give detailed rationales** for course recommendations
 
@@ -616,3 +506,203 @@ def followup_agent(query, sessionID):
     print(response)
 
     return response
+
+def router_message(message, sessionID):
+    router_system = f"""
+    You are a Tufts University Advisor in the Computer Science Department.
+
+    ## Instructions ##
+    Your job is to correctly classify the user request into one of the following categories:
+    - MESSAGE DPT
+    - MESSAGE ADV
+    - NONE
+
+    You are only allowed to classify into one these three categories.
+
+    ## Categories ##
+    1. MESSAGE DPT - the user requests to send a message to CS Department
+    2. MESSAGE ADV - the user requests to send a message to a CS Advisor
+    3. NONE - the user does not request to send any message
+
+    ## Response Instructions ##
+    - You must always responde with a category and a message, in this format: CATEGORY()
+    - Example: MESSAGE ADV()
+    - Example: MESSAGE DPT()
+    - Example: NONE()
+    """
+
+    response = generate(
+        model="4o-mini",
+        system=router_system,
+        query=f"""
+               User Request: {message}
+               """,
+        temperature=0.0,
+        session_id=sessionID,
+        lastk=0
+    )
+
+    msg_category, prompt = agent_tools.category_prompt_re_match(response)
+
+    print(f"Message Category ({msg_category}), Prompt: {prompt}")
+
+    # return msg_category, prompt
+    if isinstance(response, dict):
+        return response['response']
+
+    return response
+
+def detailed_message_agent(message, sessionId, username):
+    print(f"Detailing message: {message}")
+    router_system = f"""
+    You are acting as a mediator agent between a student at Tufts University and a CS Advisor or CS Department contact.
+
+    Your job is to get the user message and given their previous context, 
+    elaborate a detailed information explaining the other part what the user is trying to communicate.
+
+    ## Person you are communicating from ##
+    - If {username} is {cs_dept_username}, then the message came from the CS Department.
+    - If {username} if {cs_adv_username}, then the message came from a CS Advisor.
+    Otherwise, the message came from an student.
+
+    ## Person you are communicating to ##
+    - If the message came from the CS Department, then your job is to clearly communicate the response to a student. 
+    - If the message came from a CS Advisor, then your job is to clearly communicate the response to a student.
+    - If the message came from an student, then you job is to clearly communicate the message to a CS Advisor or CS Department contact.
+
+    ## For example ##
+    - You receive a message from a user who is a student, you will do your best to provide valuable information to the CS Advisor about the user message.
+    - You receive a message from an advisor or CS department, you will do you best to provide a detailed information to the student about the advisor message.
+
+    ## Instructions ##
+    - The most important thing is to answer the query.
+    - Use previous context as support for your answer.
+    - Use bullet points to supply the context to your answer.
+    - Finalize the response with a concise answer to the user message.
+    """
+
+    response = generate(
+        model="4o-mini",
+        system=router_system,
+        query=f"""
+               User Message: {message}
+               From User: {username}
+               """,
+        temperature=0.5,
+        session_id=sessionId,
+        lastk=20
+    )
+
+    print(f"Response: {response['response']}")
+
+    # return msg_category, prompt
+    if isinstance(response, dict):
+        return response['response']
+
+    return response
+
+def professor_rating_agent(query, sessionId):
+    # search_results = agent_tools.web_search(query, 5)
+    # print(search_results)
+    import json
+
+    professor_name = generate(
+        model = "4o-mini",
+        system = f"""
+            You are an agent working for Tufts University Advisor in the Computer Science Department.
+
+            Your job is to extract the professor's name from the user query.
+
+            The response should only include the professor's name and nothing else.
+            """,
+        query = query,
+        temperature=0.0,
+        lastk=0,
+        session_id=sessionId
+    )
+
+    professor_name = professor_name['response'].replace(' ', '%20')
+    print(f'Professor: {professor_name}')
+
+    # 1. Search page
+    search_url = f"https://www.ratemyprofessors.com/search/professors/1040?q={professor_name}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+    res = requests.get(search_url, headers=headers)
+
+    # 2. Get legacyId (professor ID)
+    matches = re.findall(r'"legacyId":(\d+)', res.text)
+    if not matches:
+        print("Professor ID not found.")
+        exit()
+
+    prof_id = matches[0]
+
+    # 3. Get the professor profile page
+    prof_url = f"https://www.ratemyprofessors.com/professor/{prof_id}"
+    res = requests.get(prof_url, headers=headers)
+
+    # 4. Extract embedded JSON from <script> tag
+    json_match = re.search(r'window\.__RELAY_STORE__ = ({.*});', res.text)
+
+    if not json_match:
+        print("Could not find professor data in HTML.")
+        exit()
+
+    data = json.loads(json_match.group(1))
+
+    # Professor Info Dictionary
+    professor_info = agent_tools.get_professor_info(data)
+
+    # Get List of Rating Comments
+    ratings_list = [rating['comment'] for rating in professor_info['ratings']]
+
+    response = generate(
+        model = "4o-mini",
+        system = f"""
+            You are an agent working for Tufts University Advisor in the Computer Science Department.
+
+            Your job is to make retrieve information evaluating a professor.
+
+            You will be given a user query and context.
+            
+            ## Response Instructions ##
+            - Use the provided context to produce an effective and concise response the user query.
+            - Always include the reference link in the response.
+            - Include 1 to 5 stars based on the professor rating, use whole numebers, for example rating 3.6: ⭐️⭐️⭐️
+
+            ## Response Format ##
+            Each should be one line
+            - Output the number of stars based on the professor rating, in the following format: >⭐️⭐️⭐️
+            - Summary of the Professor's performance that the user might be interested in.
+            - Teaching rating
+            - Courses difficulty
+            - (percentage %) of students would take one of professor's {professor_name} classes again.
+            - Number of ratings
+            - List a Few Ratings Comments, not more than 5, and use bullet points to separate each comment.
+            - Provide reference links from ratemyprofessor websit and Tufts website
+            """,
+        query = f"""
+                User query: {query}
+
+                Professor Information:
+                Name: {professor_info['name']}
+                Department: {professor_info['dept']}
+                Average Rating: {professor_info['avg_rating']}
+                Average Difficulty: {professor_info['avg_difficulty']}
+                Would Take Again Percent: {professor_info['would_take_again']}
+                Number of Ratings: {professor_info['num_ratings']}
+                Rate My Professor URL: {prof_url}
+
+                Ratings:
+                {ratings_list}
+                """,
+        temperature=0.2,
+        lastk=0,
+        session_id=sessionId
+    )
+
+    print(f'Professor Rating: {response['response']}')
+    
+    return response['response']
