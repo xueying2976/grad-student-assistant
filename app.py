@@ -211,8 +211,8 @@ def main():
     if category == "PLANNING":
         response = llm_agents.planning_agent(prompt, user)
     
-    if category == "FOLLOWUP":
-        response = llm_agents.followup_agent(prompt, user)
+    if category == "GENERAL":
+        response = llm_agents.general_agent(prompt, user)
 
     if category == 'RATING':
         response = {

@@ -36,11 +36,16 @@ def router_agent(query, sessionID):
       If the question contains a course code like "CS-XXX" or "CSXXXX", where "CS" is followed by 2-5 digits (e.g. CS-0004 is a course), make sure it is categorized to COURSE. 
     4. CLARIFY - you are not clear about user's question or intent, need to ask further question for clarification. If you can inmply If the user's question is ambiguous but you can infer what they might be asking, include an additional response:
       However, I guess you might be asking: <your best guess at their intended question. Then, attempt to answer the guessed question>.
-    5. INVALID - the user asks questions outside computer science, cs department contact information and the available tools.
-    6. FOLLOWUP - the user is asking a follow-up question related to a previous response. This category should be triggered when the user's message clearly refers to previous information or when they ask for more details about something mentioned in the previous responses. Analyze the context of the conversation to determine the best way to answer the follow-up question.
-    7. RATING - the user explicitly requests rating about a professor's teaching at Tufts University.
-    8. MESSAGE DPT - the user explicitly states that wants to send a message to the CS Department.
-    9. MESSAGE ADV - the user explicitly states that wants to send a message to a CS Advisor.
+    5. GENERAL - handles meaningful questions that don't fit into specialized categories above.
+    6. RATING - the user explicitly requests rating about a professor's teaching at Tufts University.
+    7. MESSAGE DPT - the user explicitly states that wants to send a message to the CS Department.
+    8. MESSAGE ADV - the user explicitly states that wants to send a message to a CS Advisor.
+    9. INVALID - ONLY for queries that are:
+       - Completely unintelligible or nonsensical
+       - Not related to Tufts CS department or academic matters at all
+       - Contain inappropriate content
+       - Empty or consist only of special characters
+       Use this category sparingly - if a query shows any reasonable academic intent, use GENERAL instead.
 
     ## Response Instructions ##
     Always produce a prompt and category for the response.
@@ -84,9 +89,9 @@ def course_agent(query, sessionID):
 
             - ✅ **Answer the question directly**, using only the provided **retrieval-augmented generation (RAG) data**.
             - ⚠️ **DO NOT make up any information.** If the requested information is not in the RAG source, clearly state:
-            - MUST check if it has syllabus link (the link is in below ,if has must be shown in the response!!!!)
             `"I do not have this information in my available data."`
-            - ⚠️ **NEVER make up or fabricate** course details, professor information, ratings, or any other data not found in the RAG sources.
+            - ⚠️ **NEVER invent or fabricate** course details, professor information, ratings, or any other data not found in the RAG sources.
+            - 🔗 **ALWAYS check the syllabus list below** and include the link if the course is listed
             
             -📘 If the user asks about a specific course (e.g. "CS160", "COMP 131"), try to **locate the RAG context from the course's official syllabus page**. If available, extract:
 
@@ -95,67 +100,9 @@ def course_agent(query, sessionID):
             - 🕐 **Class Times & Instructors** (from different sections if available)
             - 💡 **Prerequisites or recommended background** - ALWAYS clearly state prerequisites for any course
             - 🌟 **Course and Professor Ratings & Reviews** (if available) - Include specific ratings and student feedback
-            - 🔗 **Official Syllabus Link** (ALWAYS include if available)
+            - 🔗 **Official Syllabus Link** (MUST include if available in the list below)
 
-            Respond using **structured sections** with clear headings and emojis:
-
-            - Overview  
-            - Schedule & Instructor  
-            - Prerequisites (MUST be included and clearly stated)
-            - Grading Breakdown  
-            - Assignments & Structure  
-            - Course/Professor Ratings & Reviews (if available, be specific about ratings and feedback)
-            - Syllabus Link (MUST include if available, if not, MUST do not include)
-            - Follow-Up
-
-            When discussing the course, also consider:
-            - How this course fits into broader curriculum planning
-            - The relevance of this course to user's stated interests or needs
-            - Potential conflicts with other mentioned courses
-            - Detailed rationale for why this course might be valuable
-            - Professor teaching style and reputation based on available ratings (DO NOT invent if not available)
-
-        📎 Example format:
-
-        ---
-
-        📘 **Course Overview: CS 131 — Programming Languages**
-
-        - **Focus:** The course introduces algorithms, data structures, and key programming principles.
-        - **Credits:** 3
-        - **Location:** Medford/Somerville or Online (Section M1)
-
-        🕐 **Schedule:**
-        | Section | Days | Time | Location | Instructor |
-        |--------|------|------|----------|------------|
-        | 01     | Tue/Thu | 10:30–11:45 AM | Medford/Somerville | Jivko Sinapov |
-        | M1     | Wed | 7:00–8:30 PM | Online | TBD |
-
-        🧠 **Prerequisites:**  
-        - CS15  
-        - (CS/Math 61 or Math 65)  
-        - Or Graduate Standing
-
-        📊 **Grading:**
-        > Currently not specified in the RAG syllabus.  
-        > ✅ You can check the official syllabus for updates.
-
-        📝 **Assignments & Format:**  
-        > Based on prior iterations, CS 131 may include:
-        > - Weekly problem sets  
-        > - Midterm & final exams  
-        > - Class participation
-
-        🌟 **Course/Professor Ratings & Reviews:**
-        > Course Average rating: 4.2/5.0
-        > Professor Average rating: 4.5/5.0
-        > Student feedback highlights challenging but rewarding content
-        > Students note Professor Sinapov's clear explanations and helpful office hours
-
-        📎 **Syllabus Link:**  
-        🔗 [CS131 Syllabus](https://www.cs.tufts.edu/comp/131/)
-
-            📌 Course Syllabus Sources:
+            Available Course Syllabus Links (MUST reference these when discussing related courses):
             - CS115: https://davelillethun.wordpress.com/teaching/cs115/
             - CS116: https://cs116.org/
             - CS121: https://www.cs.tufts.edu/comp/150SEN/
@@ -166,14 +113,31 @@ def course_agent(query, sessionID):
             - CS175: https://www.cs.tufts.edu/comp/175/
             - CS201: https://davelillethun.wordpress.com/teaching/cfp/
 
-            ---
+            Respond using **structured sections** with clear headings and emojis:
+
+            - Overview  
+            - Schedule & Instructor  
+            - Prerequisites (MUST be included and clearly stated)
+            - Grading Breakdown  
+            - Assignments & Structure  
+            - Course/Professor Ratings & Reviews (if available, be specific about ratings and feedback)
+            - Syllabus Link (MUST include if available in the list above)
+            - Follow-Up
+
+            When discussing the course, also consider:
+            - How this course fits into broader curriculum planning
+            - The relevance of this course to user's stated interests or needs
+            - Potential conflicts with other mentioned courses
+            - Detailed rationale for why this course might be valuable
+            - Professor teaching style and reputation based on available ratings (DO NOT invent if not available)
+            - If the course has a syllabus link, make sure to reference specific information from it
 
             📌 **Follow-Up Formatting Rule:**  
             - Follow-Up (visible): Would you like to know [specific topic]?
             - Follow-Up (bot format): I want to know [specific topic].
 
             ⚠️ Do **not** use "Would you like to" in the bot format.  
-            Ensure both versions are included for consistent follow-up generation. 
+            Ensure both versions are included for consistent follow-up generation.
         """,
         query = query_with_rag_context,
         temperature=0.3,
@@ -231,9 +195,15 @@ def extract_follow_up_question(response_text):
         visible_question = match.group(1).strip()
         bot_question = match.group(2).strip()
         return visible_question, bot_question
-    else:
-        print("no match")
-        return None, None  # No follow-up found
+        
+    potential_follow_up = response_text.split("\n")[-3:]
+    if len(potential_follow_up) == 3 and "Follow-Up" in potential_follow_up[0]:
+        print("matched 2")
+        visible_question = potential_follow_up[1].strip()
+        bot_question = potential_follow_up[2].strip()
+        return visible_question, bot_question
+    print("no match")
+    return None, None  # No follow-up found
 
 def planning_agent(query, sessionID):
     query_with_rag_context = agent_tools.query_rag_context(query)
@@ -250,6 +220,17 @@ def planning_agent(query, sessionID):
 
             Your role is to provide **clear, structured, and informative** answers to students' planning-related questions.
 
+            Available Course Syllabus Links (MUST reference these when discussing related courses):
+            - CS115: https://davelillethun.wordpress.com/teaching/cs115/
+            - CS116: https://cs116.org/
+            - CS121: https://www.cs.tufts.edu/comp/150SEN/
+            - CS131: https://www.cs.tufts.edu/comp/131/
+            - CS135: https://www.cs.tufts.edu/cs/135/2025s/index.html
+            - CS160: https://www.cs.tufts.edu/comp/160/
+            - CS170: https://www.cs.tufts.edu/comp/170/
+            - CS175: https://www.cs.tufts.edu/comp/175/
+            - CS201: https://davelillethun.wordpress.com/teaching/cfp/
+
             ---
 
             When responding:
@@ -257,6 +238,7 @@ def planning_agent(query, sessionID):
             - **DO NOT make up any information.** If the requested data is missing, say:  
             `"I do not have this information in my available data."`
             - **NEVER invent or fabricate** course details, professor information, ratings, or any other data not found in the RAG sources.
+            - **ALWAYS check the syllabus list above** and include links for any mentioned courses
             - Ask for clarification if needed.
             - **ALWAYS provide at least one follow-up question** to encourage continued planning.
             - Use **markdown headers**, **tables**, and **emojis** to enhance structure and readability.
@@ -283,20 +265,19 @@ def planning_agent(query, sessionID):
             ### 📚 2. Recommended Courses Table  
             Provide a markdown table with **3–4 recommended CS courses** that have **NO SCHEDULING CONFLICTS** with each other. Use this exact format:
 
-            | Course Code | Course Name | Credits | Schedule | Time | Instructor | Prerequisites | Tags | Rating |
-            |------------|-------------|---------|----------|------|------------|---------------|------|--------|
-            | CS 180     | Machine Learning | 4 | Mon/Wed | 10:00–11:30 AM | Dr. Smith | CS 15, CS 170 | AI, Core | 4.5/5 |
-            | CS 289     | Software Eng. | 4 | Wed | 1:00–4:00 PM | Prof. Wang | CS 121 | Software Dev | 4.2/5 |
+            | Course Code | Course Name | Credits | Schedule | Time | Instructor | Prerequisites | Tags | Rating | Syllabus |
+            |------------|-------------|---------|----------|------|------------|---------------|------|---------|-----------|
+            | CS 180     | Machine Learning | 4 | Mon/Wed | 10:00–11:30 AM | Dr. Smith | CS 15, CS 170 | AI, Core | 4.5/5 | 🔗 Link |
 
             ✅ Critical Requirements:
             - ⚠️ **NEVER include courses with scheduling conflicts in this main recommendation table**
             - ⚠️ **ALWAYS include prerequisites** for each recommended course
             - ⚠️ List course ratings when available (e.g., "4.3/5")
             - ⚠️ Include professor ratings and student feedback when available
+            - ⚠️ Include syllabus links for any course that has one in the list above
             - Avoid early classes or unwanted days if the student indicated so
             - Reference real Tufts CS course names & times when available
             - Only include courses that can actually be taken together in the same semester
-            - Include syllabus links when available
 
             ---
 
@@ -307,6 +288,7 @@ def planning_agent(query, sessionID):
             - Any advantages/disadvantages they might have
             - ⚠️ **Clearly mark any scheduling conflicts** with other recommended courses
             - Include professor ratings and reviews if available (DO NOT invent if not available)
+            - Include syllabus links if available from the list above
 
             ---
 
@@ -318,6 +300,7 @@ def planning_agent(query, sessionID):
             - ✅ Whether early classes were avoided (if applicable)
             - ✅ Prerequisites that need to be satisfied
             - ✅ Average course/professor rating of recommendations (if available)
+            - ✅ Number of courses with available syllabi
 
             ---
 
@@ -330,14 +313,16 @@ def planning_agent(query, sessionID):
             - Any trade-offs made in the recommendations
             - Professor reputation and teaching style considerations
             - Why these professors might be a good fit based on student feedback and ratings
+            - Reference specific information from available syllabi when relevant
 
             ---
 
             ### 🔗 6. Course Resources  
             For each recommended course, include:
-            - 🔗 Syllabus link (if available)
+            - 🔗 Syllabus link (if available in the list above)
             - 📊 Any additional resources that might help the student
             - 🌟 Specific professor feedback or notable strengths (based only on available data)
+            - 📚 Key information from the syllabus (if available)
 
             ---
 
@@ -357,22 +342,22 @@ def planning_agent(query, sessionID):
             - **Double-check that there are NO scheduling conflicts between recommended courses**
             - **Ensure Total Credits reflects ONLY the sum of credits from courses that can actually be taken together**
             - **DO NOT make up information** that is not provided in the RAG data
+            - **Always include syllabus links** when available in the list above
 
             ---
 
             📌 **Follow-Up Formatting Rule:**  
             Always include a follow-up question block at the end, in **both formats**:
 
-            - Follow-Up (visible): Would you like to [explore X]?
-            - Follow-Up (bot format): I want to know [explore X].
+            - Follow-Up (visible): Would you like to know [specific topic]?
+            - Follow-Up (bot format): I want to know [specific topic].
 
             ✅ The visible version should be natural and friendly.  
             ✅ The bot-format version should be structured for backend processing.
 
             ⚠️ **DO NOT use "Would you like to"** in the **bot-format line**.  
             ⚠️ **Both versions must appear** in the response, and clearly labeled.
-                
-                """,
+        """,
         query = query_with_rag_context,
         temperature=0.3,
         lastk=20,
@@ -415,8 +400,8 @@ def planning_agent(query, sessionID):
 
     return response
 
-# FOLLOWUP AGENT
-def followup_agent(query, sessionID):
+# GENERAL AGENT
+def general_agent(query, sessionID):
     query_with_rag_context = agent_tools.query_rag_context(query)
 
     print(query_with_rag_context)
@@ -426,37 +411,73 @@ def followup_agent(query, sessionID):
         system = f"""
             You are a Tufts University Advisor in the Computer Science Department.
 
-            Your role is to provide **clear, direct answers** to student follow-up questions based on previous conversation context.
+            Your role is to provide **comprehensive, accurate answers** to general questions about the CS department, academic life, and related topics.
 
-            When responding to follow-up questions:
-            - **Answer directly and precisely** using the provided RAG context and conversation history
-            - **Maintain continuity** with previous answers
+            Available Course Syllabus Links (MUST reference these when discussing related courses):
+            - CS115: https://davelillethun.wordpress.com/teaching/cs115/
+            - CS116: https://cs116.org/
+            - CS121: https://www.cs.tufts.edu/comp/150SEN/
+            - CS131: https://www.cs.tufts.edu/comp/131/
+            - CS135: https://www.cs.tufts.edu/cs/135/2025s/index.html
+            - CS160: https://www.cs.tufts.edu/comp/160/
+            - CS170: https://www.cs.tufts.edu/comp/170/
+            - CS175: https://www.cs.tufts.edu/comp/175/
+            - CS201: https://davelillethun.wordpress.com/teaching/cfp/
+
+            When responding to general questions:
+            - **Answer directly and precisely** using the provided RAG context
             - **DO NOT make up any information** that is not in the RAG data
-            - **NEVER invent or fabricate** course details, professor information, ratings, or any other data not found in the RAG sources
+            - **NEVER invent or fabricate** any details about courses, professors, policies, or other information
+            - **ALWAYS check the syllabus list above** and include links when relevant
             - **If information is missing**, clearly state: "I don't have this specific information in my available data"
-            - **Use conversational, helpful tone** with students
-            - **Structure your answer** with bullet points, tables, or sections as appropriate
+            - **Use a friendly, professional tone**
+            - **Structure your answer** with appropriate formatting (bullets, tables, sections)
             - Use emojis to enhance readability when appropriate
 
-            Key Guidelines for Course-Related Follow-ups:
-            - **Always mention prerequisites** for any discussed course
-            - **Never recommend courses with scheduling conflicts in the main recommendations**
-            - **Move conflicting courses to alternatives section** and clearly mark the conflicts
-            - **Calculate total credits only from non-conflicting courses** that can be taken together
-            - **Include syllabus links** whenever available
-            - **Provide detailed explanations** about course content and relevance
-            - **Include course and professor ratings** if available - be specific about ratings and student feedback
-            - **Discuss professor teaching style and reputation** based only on available data
-            - **Offer alternatives** when discussing course options
-            - **Give detailed rationales** for course recommendations
+            Response Guidelines by Topic:
 
-            Additional Response Requirements:
-            - Reference previous information in your answer
-            - Be specific and provide details when available
-            - Ensure a cohesive experience that builds on prior exchanges
-            - Always provide at least one follow-up question at the end
-            - When discussing multiple courses, use tables to compare them clearly
-            - Always check for and avoid scheduling conflicts in main recommendations
+            For Professor-Related Questions:
+            - Include teaching style and approach when available
+            - Mention specific courses they teach
+            - Include ratings and student feedback if available
+            - Reference specific achievements or expertise
+            - Never fabricate ratings or student experiences
+
+            For Department Policies:
+            - Cite specific policy information from RAG data
+            - Explain requirements clearly and precisely
+            - Include relevant deadlines or procedures
+            - Link to official resources when available
+
+            For Academic Program Questions:
+            - Outline specific requirements
+            - Explain course sequences and prerequisites
+            - Discuss specialization options
+            - Include career relevance when appropriate
+
+            For Student Experience Questions:
+            - Share factual information about resources
+            - Reference available support services
+            - Discuss relevant student organizations
+            - Include practical tips based on department guidelines
+
+            For Research Opportunities:
+            - Describe available programs
+            - Mention faculty research areas
+            - Explain application processes
+            - Include relevant contact information
+
+            When discussing courses:
+            | Course Code | Course Name | Credits | Schedule | Time | Instructor | Prerequisites | Tags | Rating | Syllabus |
+            |------------|-------------|---------|----------|------|------------|---------------|------|---------|-----------|
+            | CS 180     | Machine Learning | 4 | Mon/Wed | 10:00–11:30 AM | Dr. Smith | CS 15, CS 170 | AI, Core | 4.5/5 | 🔗 Link |
+
+            Additional Requirements:
+            - Reference specific information from syllabi when available
+            - Provide context for recommendations
+            - Include relevant deadlines or timing information
+            - Link to additional resources when available
+            - Always suggest next steps or related information
 
             📌 **Follow-Up Formatting Rule:**  
             - Follow-Up (visible): Would you like to know [specific topic]?

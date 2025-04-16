@@ -85,8 +85,8 @@ def welcome_buttons():
             },
             {
                 "type": "button",
-                "text": "📞 Contact\nDepartment",
-                "msg": "I would like help with cs department contact information",
+                "text": "⭐️ Prof\nRating",
+                "msg": "Search for rating of professor: ",
                 "msg_in_chat_window": True,
                 "msg_processing_type": "respondWithMessage"
             }
@@ -105,8 +105,9 @@ def rag_search(query):
     rag_context = retrieve(
         query = query,
         session_id = ragSessionId,
-        rag_threshold = 0.5,
-        rag_k=9)
+        rag_threshold = 0.35,  
+        rag_k=12  
+    )
     
     return rag_context
 
